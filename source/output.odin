@@ -20,18 +20,23 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-	for &bar in g.values {
-		rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
-	}
 	switch sim in g.sim {
+	case Randomize:
+		for &bar in g.values {
+			rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
+		}
 	case InsersionSort:
-
+		assert(len(g.values) > 1)
+		for &bar in g.values {
+			rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
+		}
+		draw_bar_cursor(sim.insert, )
 	}
 
 	clay_raylib_render(&g.ui_cmds)
-	draw_cursor()
+	draw_mouse_cursor()
 }
-draw_cursor :: proc() {
+draw_mouse_cursor :: proc() {
 	RADIUS :: 5
 	WIDTH :: 7
 	LENGTH :: 25
@@ -48,7 +53,15 @@ draw_cursor :: proc() {
 	// 	rl.DrawRectangleLinesEx({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, 1, rl.BLACK)
 	// }
 	// rlgl.PopMatrix()
-
+}
+draw_bar_cursor :: proc(val: AnimatedFloat, anim := AnimationData{}) {
+	WIDTH :: 35
+	HEIGHT :: 20
+	TOP_MARGIN :: 5
+	cursor := bar_cursor_point(bar.i, INITIALIZATION_DURATION)
+	x := cursor.x
+	y := cursor.y + TOP_MARGIN
+	rl.DrawTriangle({x, y}, {x - WIDTH / 2, y + HEIGHT}, {x + WIDTH / 2, y + HEIGHT}, rl.RED)
 }
 letter_box :: proc() -> (camera: rl.Camera2D, start, end: rl.Rectangle) {
 	camera.zoom = 1
@@ -96,13 +109,18 @@ letter_box :: proc() -> (camera: rl.Camera2D, start, end: rl.Rectangle) {
 	}
 	return
 }
-bar_rec :: proc(bar: ^BarValue) -> rl.Rectangle {
-	WIDTH :: 50
-	GAP :: 10
-	i := bar_get_pos(bar)
-	x := i * (GAP + WIDTH)
-	return {x, GRAPH_HEIGHT - bar.height * GRAPH_HEIGHT + 30, WIDTH, bar.height * GRAPH_HEIGHT}
+BAR_WIDTH :: 50
+BAR_GAP :: 10
+bar_rec :: proc(bar: ^BarValue, anim := AnimationData{}) -> rl.Rectangle {
+	pos := bar_bottom_left(bar.i, anim)
+	return {pos.x, pos.y - bar.height * GRAPH_HEIGHT, BAR_WIDTH, bar.height * GRAPH_HEIGHT}
 }
-bar_get_pos :: proc(bar: ^BarValue) -> f32 {
-	return interp(bar.start, bar.end, bar.t, IT.SmoothStep3)
+bar_bottom_left :: proc(val: AnimatedFloat, anim := AnimationData{}) -> [2]f32 {
+	i := interp(val.start, val.end, val.t, anim.type)
+	x := i * (BAR_GAP + BAR_WIDTH)
+	return {x, GRAPH_HEIGHT}
+}
+bar_cursor_point :: proc(val: AnimatedFloat, anim := AnimationData{}) -> [2]f32 {
+	pos := bar_bottom_left(val, anim)
+	return {pos.x + BAR_WIDTH / 2, pos.y}
 }

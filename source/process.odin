@@ -5,10 +5,26 @@ import "core:slice"
 import "vendor:clay"
 import rl "vendor:raylib"
 
-INITIALIZATION_DURATION :: 0.3
-MOVE_HEAD_DURATION :: 0.4
-SWAP_DURATION :: 0.8
-COMPARE_DURATION :: 1.
+RANDOMIZE_DURATION :: AnimationData {
+	dur  = 0.1,
+	type = .Linear,
+}
+INITIALIZATION_DURATION :: AnimationData {
+	dur  = 0.3,
+	type = .SmoothStep3,
+}
+MOVE_HEAD_DURATION :: AnimationData {
+	dur  = 0.1,
+	type = .SmoothStep3,
+}
+SWAP_DURATION :: AnimationData {
+	dur  = 0.8,
+	type = .SmoothStep3,
+}
+COMPARE_DURATION :: AnimationData {
+	dur  = 1,
+	type = .SmoothStep3,
+}
 
 process :: proc() {
 	clay.SetPointerState(g.input.mouse_pos, false)
@@ -18,33 +34,53 @@ process :: proc() {
 	}
 
 	if g.input.randomize {
-		g.sim = nil
+		g.sim = Randomize{}
 		rand.shuffle(g.values[:])
 		for &bar, i in g.values {
-			bar.start = bar_get_pos(&bar)
-			bar.end = f32(i)
-			bar.t = 0
+			bar.i.start = interp(bar.i.start, bar.i.end, bar.i.t, RANDOMIZE_DURATION.type)
+			bar.i.end = f32(i)
+			bar.i.t = 0
 		}
 	}
-	for &bar in g.values {
-		if !g.is_sorting {
-			bar.t += g.input.dt * (1 + g.speed) / RANDOMIZE_DURATION
-		} else {
-			bar.t += g.input.dt * (1 + g.speed)
-		}
-	}
+
 	if g.input.start_sort {
-		g.is_sorting = true
-		g.sim = InsersionSort{}
+		if len(g.values) > 1 {
+			g.is_sorting = true
+			g.sim = InsersionSort {
+				head = {end = 1, start = 1},
+			}
+		}
 	}
-	switch sim in g.sim {
+	switch &sim in g.sim {
+	case Randomize:
+		for &bar in g.values {
+			bar.i.t += g.input.dt * (1 + g.speed) / RANDOMIZE_DURATION.dur
+		}
 	case InsersionSort:
+		assert(len(g.values) > 1)
 		switch sim.state {
 		case .Initialization:
+			sim.step_t += g.input.dt * (1 + g.speed) / INITIALIZATION_DURATION.dur
+			if sim.step_t > 1 {
+				sim.state = .MoveHead
+			}
+			for &bar in g.values {
+				bar.i.t += g.input.dt * (1 + g.speed) / INITIALIZATION_DURATION.dur
+			}
 		case .MoveHead:
+			sim.step_t += g.input.dt * (1 + g.speed) / MOVE_HEAD_DURATION.dur
+			if sim.step_t > 1 {
+				sim.state = .MoveHead
+				sim.step_t = 0
+			}
+			for &bar in g.values {
+				bar.i.t += g.input.dt * (1 + g.speed) / MOVE_HEAD_DURATION.dur
+			}
 		case .Swap:
 		case .Compare:
 		}
+	case:
+		unreachable()
 	}
 	clean_sound_pool()
 }

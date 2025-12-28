@@ -8,7 +8,6 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
-RANDOMIZE_DURATION :: 0.1
 GRAPH_HEIGHT :: 200.
 
 CONST_FPS :: 60.
@@ -55,8 +54,11 @@ InsersionSort :: struct {
 		Swap,
 		Compare,
 	},
+	step_t:                f32,
 }
+Randomize :: struct {}
 Simulation :: union {
+	Randomize,
 	InsersionSort,
 }
 World :: struct {
@@ -81,10 +83,9 @@ AnimatedFloat :: struct {
 	start, end: f32, // instead of index, use this to interpolate
 }
 BarValue :: struct {
-	value:      f32,
-	height:     f32, // [0, 1]
-	t:          f32,
-	start, end: f32, // instead of index, use this to interpolate
+	value:  f32,
+	height: f32, // [0, 1]
+	i:      AnimatedFloat, // animated index
 }
 g: ^Game
 start :: proc() {
@@ -101,10 +102,9 @@ start :: proc() {
 	insort: InsersionSort
 	for i in 0 ..< COUNT {
 		bar := BarValue {
-			value  = f32(i),
+			value = f32(i),
 			height = f32(i + 1) / COUNT,
-			start  = f32(i),
-			end    = f32(i),
+			i = {start = f32(i), end = f32(i)},
 		}
 		append(&g.values, bar)
 	}
