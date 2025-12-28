@@ -8,6 +8,7 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
+RANDOMIZE_DURATION :: 0.1
 GRAPH_HEIGHT :: 200.
 
 CONST_FPS :: 60.
@@ -22,6 +23,8 @@ Input :: struct {
 	mouse_pos:        [2]f32,
 	click:            bool,
 	randomize:        bool,
+	start_sort:       bool,
+	pause_sort:       bool,
 	process_rng_seed: u64,
 	output_rng_seed:  u64,
 }
@@ -45,7 +48,13 @@ Game :: struct {
 	// Game world
 }
 InsersionSort :: struct {
-	values: [dynamic]BarValue,
+	head, insert, compare: AnimatedFloat,
+	state:                 enum {
+		Initialization,
+		MoveHead,
+		Swap,
+		Compare,
+	},
 }
 Simulation :: union {
 	InsersionSort,
@@ -59,12 +68,22 @@ World :: struct {
 	font_ui:      u16,
 	font_mono_ui: u16,
 	sim:          Simulation,
+	speed:        f32,
+	is_sorting:   bool,
+	values:       [dynamic]BarValue,
+}
+AnimationData :: struct {
+	dur:  f32,
+	type: IntepolationType,
+}
+AnimatedFloat :: struct {
+	t:          f32,
+	start, end: f32, // instead of index, use this to interpolate
 }
 BarValue :: struct {
 	value:      f32,
 	height:     f32, // [0, 1]
-	dur:        f32,
-	t:  f32,
+	t:          f32,
 	start, end: f32, // instead of index, use this to interpolate
 }
 g: ^Game
@@ -82,13 +101,12 @@ start :: proc() {
 	insort: InsersionSort
 	for i in 0 ..< COUNT {
 		bar := BarValue {
-			dur    = 0.1,
 			value  = f32(i),
 			height = f32(i + 1) / COUNT,
 			start  = f32(i),
 			end    = f32(i),
 		}
-		append(&insort.values, bar)
+		append(&g.values, bar)
 	}
 	g.sim = insort
 }

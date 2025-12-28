@@ -20,12 +20,12 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-
+	for &bar in g.values {
+		rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
+	}
 	switch sim in g.sim {
 	case InsersionSort:
-		for &bar in sim.values {
-			rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
-		}
+
 	}
 
 	clay_raylib_render(&g.ui_cmds)
