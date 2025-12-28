@@ -125,8 +125,8 @@ game_start :: proc() {
 	clay.SetMeasureTextFunction(measure_text, nil)
 	clay.SetLayoutDimensions({SCREEN_WIDTH, SCREEN_HEIGHT})
 
-	rl.SetConfigFlags(INIT_CONFIG_FLAGS)
-	rl.InitWindow(INIT_SCREEN_WIDTH, INIT_SCREEN_HEIGHT, INIT_WINDOW_NAME)
+	rl.SetConfigFlags(WINDOW_CONFIG_FLAGS)
+	rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_NAME)
 	rl.SetExitKey(nil)
 	rl.InitAudioDevice()
 

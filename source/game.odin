@@ -8,35 +8,13 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
-// use g.input.dt for portability
 CONST_FPS :: 60.
 
-UPGRADE_BUTTON_ID :: "UPGRADE"
-CONTINUE_BUTTON_ID :: "CONTINUE"
-BACK_TO_START_BUTTON_ID :: "BACK_TO_START"
-PAUSE_BUTTON_ID :: "PAUSE"
-START_GAME_BUTTON_ID :: "BUTTON"
-HELLO_BUTTON_ID :: "HELLO"
-GAME_BOTTOM_BAR_HEIGHT :: 120
-PROBLEM_SPREAD :: 300.
-PROBLEM_HEIGHT :: 60.
-PROBLEM_FALL_SPEED :: 70.
-PROBLEM_COOLDONW :: 1.2
-BUTTON_COLOR :: [?]f32{200, 200, 200, 255}
-BUTTON_HOVERED_COLOR :: [?]f32{235, 235, 235, 255}
-COMBO_DURATION :: 4.5
-#assert(COMBO_DURATION > 0)
-
-IMAGE_DUR :: 3
-CURSOR_LINE_COUNT :: 5
-PIXEL_WINDOW_HEIGHT :: 180
 SCREEN_WIDTH :: 1200.
 SCREEN_HEIGHT :: 900.
-INIT_SCREEN_WIDTH :: SCREEN_WIDTH
-INIT_SCREEN_HEIGHT :: SCREEN_HEIGHT
-INIT_WINDOW_NAME :: "Algos"
-INIT_CONFIG_FLAGS :: rl.ConfigFlags{.WINDOW_RESIZABLE, .VSYNC_HINT}
 SCREEN_ASPECT_RATIO :: SCREEN_WIDTH / SCREEN_HEIGHT
+WINDOW_NAME :: "Algos"
+WINDOW_CONFIG_FLAGS :: rl.ConfigFlags{.WINDOW_RESIZABLE, .VSYNC_HINT}
 
 Input :: struct {
 	dt:               f32,
@@ -89,7 +67,6 @@ start :: proc() {
 	_ = ui_add_font(0)
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
-	load_game()
 }
 end :: proc() {
 	// Freeing memory will be done in "game_end".
