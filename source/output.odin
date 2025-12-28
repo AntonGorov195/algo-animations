@@ -2,7 +2,6 @@ package game
 
 import "core:math/rand"
 import rl "vendor:raylib"
-import "vendor:raylib/rlgl"
 
 output :: proc() {
 	rand.reset(g.input.output_rng_seed)
@@ -21,10 +20,14 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-	switch g.state {
-	case .Game:
-	case .Paused:
+
+	switch sim in g.sim {
+	case InsersionSort:
+		for &bar in sim.values {
+			rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
+		}
 	}
+
 	clay_raylib_render(&g.ui_cmds)
 	draw_cursor()
 }
@@ -34,19 +37,17 @@ draw_cursor :: proc() {
 	LENGTH :: 25
 	OFFSET :: 7
 
-	// combo_level := g.upgrades[cast(int)U.TARGET_COMBO].level
-
 	pos := g.input.mouse_pos
-	rl.DrawCircleV(pos, RADIUS, rl.RED)
-	rlgl.PushMatrix()
-	rlgl.Translatef(pos.x, pos.y, 0)
-	rlgl.Rotatef(-360. / CURSOR_LINE_COUNT - 90 / CURSOR_LINE_COUNT, 0, 0, 1)
-	for _ in 0 ..< 5 {
-		rlgl.Rotatef(360. / CURSOR_LINE_COUNT, 0, 0, -1)
-		rl.DrawRectangleRec({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, rl.BLACK)
-		rl.DrawRectangleLinesEx({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, 1, rl.BLACK)
-	}
-	rlgl.PopMatrix()
+	rl.DrawCircleV(pos, RADIUS, rl.BLACK)
+	// rlgl.PushMatrix()
+	// rlgl.Translatef(pos.x, pos.y, 0)
+	// rlgl.Rotatef(-360. / CURSOR_LINE_COUNT - 90 / CURSOR_LINE_COUNT, 0, 0, 1)
+	// for _ in 0 ..< 5 {
+	// 	rlgl.Rotatef(360. / CURSOR_LINE_COUNT, 0, 0, -1)
+	// 	rl.DrawRectangleRec({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, rl.BLACK)
+	// 	rl.DrawRectangleLinesEx({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, 1, rl.BLACK)
+	// }
+	// rlgl.PopMatrix()
 
 }
 letter_box :: proc() -> (camera: rl.Camera2D, start, end: rl.Rectangle) {
@@ -94,4 +95,14 @@ letter_box :: proc() -> (camera: rl.Camera2D, start, end: rl.Rectangle) {
 		}
 	}
 	return
+}
+bar_rec :: proc(bar: ^BarValue) -> rl.Rectangle {
+	WIDTH :: 50
+	GAP :: 10
+	i := bar_get_pos(bar)
+	x := i * (GAP + WIDTH)
+	return {x, GRAPH_HEIGHT - bar.height * GRAPH_HEIGHT + 30, WIDTH, bar.height * GRAPH_HEIGHT}
+}
+bar_get_pos :: proc(bar: ^BarValue) -> f32 {
+	return interp(bar.start, bar.end, bar.t, IT.SmoothStep3)
 }

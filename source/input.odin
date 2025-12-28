@@ -16,6 +16,9 @@ input :: proc() {
 	if rl.IsMouseButtonPressed(.LEFT) {
 		input.click = true
 	}
+	if rl.IsKeyPressed(.E) {
+		input.randomize = true
+	}
 	input.process_rng_seed = rand.uint64()
 	input.output_rng_seed = rand.uint64()
 	g.input = input

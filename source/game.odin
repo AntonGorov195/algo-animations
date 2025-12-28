@@ -8,8 +8,9 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
-CONST_FPS :: 60.
+GRAPH_HEIGHT :: 200.
 
+CONST_FPS :: 60.
 SCREEN_WIDTH :: 1200.
 SCREEN_HEIGHT :: 900.
 SCREEN_ASPECT_RATIO :: SCREEN_WIDTH / SCREEN_HEIGHT
@@ -20,6 +21,7 @@ Input :: struct {
 	dt:               f32,
 	mouse_pos:        [2]f32,
 	click:            bool,
+	randomize:        bool,
 	process_rng_seed: u64,
 	output_rng_seed:  u64,
 }
@@ -42,19 +44,28 @@ Game :: struct {
 	letter_box_end:        rl.Rectangle,
 	// Game world
 }
+InsersionSort :: struct {
+	values: [dynamic]BarValue,
+}
+Simulation :: union {
+	InsersionSort,
+}
 World :: struct {
 	// Add stuff here for hot reloading to work
-	input:         Input,
-	state:         WorldState,
-	time:          f32,
-	font:          R.Font,
-	font_mono:     R.Font,
-	font_ui:       u16,
-	font_mono_ui:  u16,
+	input:        Input,
+	time:         f32,
+	font:         R.Font,
+	font_mono:    R.Font,
+	font_ui:      u16,
+	font_mono_ui: u16,
+	sim:          Simulation,
 }
-WorldState :: enum {
-	Game,
-	Paused,
+BarValue :: struct {
+	value:      f32,
+	height:     f32, // [0, 1]
+	dur:        f32,
+	t:  f32,
+	start, end: f32, // instead of index, use this to interpolate
 }
 g: ^Game
 start :: proc() {
@@ -67,6 +78,19 @@ start :: proc() {
 	_ = ui_add_font(0)
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
+	COUNT :: 5
+	insort: InsersionSort
+	for i in 0 ..< COUNT {
+		bar := BarValue {
+			dur    = 0.1,
+			value  = f32(i),
+			height = f32(i + 1) / COUNT,
+			start  = f32(i),
+			end    = f32(i),
+		}
+		append(&insort.values, bar)
+	}
+	g.sim = insort
 }
 end :: proc() {
 	// Freeing memory will be done in "game_end".
