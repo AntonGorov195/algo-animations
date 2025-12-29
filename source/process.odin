@@ -64,7 +64,9 @@ process :: proc() {
 				bar.pos.t += step_dt
 			}
 			if sim.step_t > 1 {
+				// Ended
 				sim.state = .MoveHead
+				sim.step_t = 0
 			}
 		case .MoveHead:
 			step_dt := g.input.dt * (1 + g.speed) / MOVE_HEAD_DURATION.dur

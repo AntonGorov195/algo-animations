@@ -38,7 +38,6 @@ game_pre_hot_reloaded :: proc() {
 	g.hot_reload.marshal = json.custom_marshals
 	g.hot_reload.unmarshal = json.custom_unmarshals 
 	g.hot_reload.clay_ctx = clay.GetCurrentContext() 
-	log.debug(string(data)) 
 } 
 @(export) 
 game_post_hot_reloaded :: proc(mem: rawptr) {
@@ -53,7 +52,6 @@ game_post_hot_reloaded :: proc(mem: rawptr) {
 	if err != nil {
 		log.logf(.Error, "game marshal error: %v", err)
 	}
-	log.info(string(g.hot_reload.hot_reload_data))
 	g.hot_reload.hot_reload_data = {}
 }
 @(export)
