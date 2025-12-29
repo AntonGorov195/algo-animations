@@ -569,8 +569,17 @@ marshal_to_writer :: proc(w: io.Writer, v: any, opt: ^Marshal_Options) -> (err: 
 			tag -= 1
 		}
 		id := info.variants[tag].id
-		return marshal_to_writer(w, any{v.data, id}, opt)
 
+		// ORDER MATTERS!
+		opt_write_start(w, opt, '{') or_return
+		opt_write_iteration(w, opt, true) or_return
+		opt_write_key(w, opt, "t") or_return
+		marshal_to_writer(w, any{rawptr(tag_ptr), info.tag_type.id}, opt) or_return
+
+		opt_write_iteration(w, opt, false) or_return
+		opt_write_key(w, opt, "v") or_return
+		marshal_to_writer(w, any{rawptr(v.data), id}, opt) or_return
+		opt_write_end(w, opt, '}') or_return
 	case runtime.Type_Info_Enum:
 		if !opt.use_enum_names || len(info.names) == 0 {
 			return marshal_to_writer(w, any{v.data, info.base.id}, opt)

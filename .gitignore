@@ -12,3 +12,4 @@ source/generators/gen_log.txt
 *.kra~
 *.kra-autosave.kra
 *.save
+tmp/*

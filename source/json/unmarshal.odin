@@ -371,7 +371,6 @@ unmarshal_string_token :: proc(
 	return false, nil
 }
 
-
 unmarshal_value :: proc(p: ^Parser, v: any) -> (err: Unmarshal_Error) {
 	UNSUPPORTED_TYPE := Unsupported_Type_Error{v.id, p.curr_token}
 	token := p.curr_token
@@ -382,31 +381,40 @@ unmarshal_value :: proc(p: ^Parser, v: any) -> (err: Unmarshal_Error) {
 	v := v
 	ti := reflect.type_info_base(type_info_of(v.id))
 	if u, ok := ti.variant.(reflect.Type_Info_Union); ok && token.kind != .Null {
-		// NOTE: If it's a union with only one variant, then treat it as that variant
-		if len(u.variants) == 1 {
-			variant := u.variants[0]
-			v.id = variant.id
-			ti = reflect.type_info_base(variant)
-			if !reflect.is_pointer_internally(variant) {
-				tag := any{rawptr(uintptr(v.data) + u.tag_offset), u.tag_type.id}
-				assign_int(tag, 1)
-			}
-		} else if v.id != Value {
-			for variant, i in u.variants {
-				variant_any := any{v.data, variant.id}
-				variant_p := p^
-				if err = unmarshal_value(&variant_p, variant_any); err == nil {
-					p^ = variant_p
-
-					raw_tag := i
-					if !u.no_nil {raw_tag += 1}
-					tag := any{rawptr(uintptr(v.data) + u.tag_offset), u.tag_type.id}
-					assign_int(tag, raw_tag)
-					return
-				}
-			}
-			return UNSUPPORTED_TYPE
+		unmarshal_expect_token(p, .Open_Brace)
+		tag_field_name := parse_object_key(p, p.allocator) or_return
+		defer delete(tag_field_name, p.allocator)
+		if tag_field_name != "t" {
+			return Unmarshal_Data_Error.Invalid_Data
 		}
+		unmarshal_expect_token(p, .Colon)
+
+		tag_field_value := parse_value(p) or_return
+		parse_comma(p)
+
+		value_field_name := parse_object_key(p, p.allocator) or_return
+		defer delete(tag_field_name, p.allocator)
+		if value_field_name != "v" {
+			return Unmarshal_Data_Error.Invalid_Data
+		}
+		unmarshal_expect_token(p, .Colon)
+
+		#partial switch tag in tag_field_value {
+		case Integer:
+			raw_tag := tag
+			if !u.no_nil {raw_tag += 1}
+
+			variant := u.variants[raw_tag]
+			variant_any := any{v.data, variant.id}
+			unmarshal_value(p, variant_any) or_return
+			tag_ptr := any{rawptr(uintptr(v.data) + u.tag_offset), u.tag_type.id}
+			_ = assign_int(tag_ptr, raw_tag)
+		case:
+			return Unmarshal_Data_Error.Invalid_Data
+		}
+
+		unmarshal_expect_token(p, .Close_Brace)
+		return
 	}
 
 	switch &dst in v {
