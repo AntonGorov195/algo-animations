@@ -52,15 +52,24 @@ Game :: struct {
 	letter_box_end:        rl.Rectangle,
 	// Game world
 }
+InsersionSortState :: enum {
+	Initialization,
+	MoveHead,
+	Swap,
+	Compare,
+	MoveNext,
+}
+insert_sort_anim := [InsersionSortState]AnimationData {
+	.Initialization = {dur = 1, type = .SmoothStep3},
+	.MoveHead = {dur = 1, type = .SmoothStep3},
+	.Swap = {dur = 1, type = .SmoothStep3},
+	.Compare = {dur = 1, type = .SmoothStep3},
+	.MoveNext = {dur = 1, type = .SmoothStep3},
+}
 InsersionSort :: struct {
 	head, insert, compare:             AnimatedFloat,
 	head_idx, insert_idx, compare_idx: int,
-	state:                             enum {
-		Initialization,
-		MoveHead,
-		Swap,
-		Compare,
-	},
+	state:                             InsersionSortState,
 	step_t:                            f32,
 }
 Randomize :: struct {}
@@ -123,3 +132,39 @@ end :: proc() {
 	// Freeing memory will be done in "game_end".
 	// Here is for logic only.
 }
+AnimatedFloat32 :: struct {
+	t:     f32,
+	start: f32,
+	end:   f32,
+	dur:   f32, // when dur == 0 then value == end
+}
+AnimatedRect :: struct {
+	t:     f32,
+	dur:   f32, // when dur == 0 then value == end
+	start: rl.Rectangle,
+	end:   rl.Rectangle,
+}
+Animated :: struct($T: typeid) {
+	type:  IntepolationType,
+	t:     f32,
+	dur:   f32, // when dur == 0 then value == end
+	start: T,
+	end:   T,
+}
+to_anim :: proc(val: $T) -> Animated(T) {
+	if false {
+		// Assert T can be interpolated
+		_ = interp(val, val, 0)
+	}
+	return {end = val}
+}
+// to_anim_f32 :: proc(val: f32) -> AnimatedFloat32 {
+// 	return {end = val}
+// }
+// to_anim_rect :: proc(val: rl.Rectangle) -> AnimatedRect {
+
+// }
+anim_change_target_f32 :: proc()
+anim_change_target_rect :: proc()
+eval_anim_f32 :: proc()
+eval_anim_rect :: proc()

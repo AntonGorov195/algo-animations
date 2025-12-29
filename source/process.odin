@@ -86,8 +86,8 @@ bar_change_index :: proc(prev: AnimatedFloat, idx: int, anim := AnimationData{})
 	return {start = interp(prev.start, prev.end, prev.t, anim.type), end = f32(idx), t = 0}
 }
 process_insertion_sort :: proc(sim: ^InsersionSort) {
-	advance :: proc(sim: ^InsersionSort, dur: f32) {
-		step_dt := g.input.dt * (1 + g.speed) / dur
+	advance :: proc(sim: ^InsersionSort, anim := AnimationData{}) {
+		step_dt := g.input.dt * (1 + g.speed) / anim.dur
 		sim.step_t += step_dt
 		sim.head.t += step_dt
 		sim.insert.t += step_dt
@@ -97,9 +97,9 @@ process_insertion_sort :: proc(sim: ^InsersionSort) {
 		}
 	}
 	assert(len(g.values) > 1)
+	advance(sim, insert_sort_anim[sim.state])
 	switch sim.state {
 	case .Initialization:
-		advance(sim, INITIALIZATION_DURATION.dur)
 		if sim.step_t > 1 {
 			// Ended
 			sim.state = .MoveHead
@@ -129,20 +129,27 @@ process_insertion_sort :: proc(sim: ^InsersionSort) {
 			sim.insert_idx = 1
 		}
 	case .MoveHead:
-		advance(sim, MOVE_HEAD_DURATION.dur)
 		if sim.step_t > 1 {
 			sim.state = .Compare
 			sim.step_t = 0
 		}
 	case .Swap:
-		advance(sim, SWAP_DURATION.dur)
+		if sim.step_t > 1 {
+			// sim.state = .Compare
+			sim.state = .MoveNext
+			sim.step_t = 0
+		}
+	case .Compare:
+		if sim.step_t > 1 {
+			sim.state = .Compare
+			// sim.state = .MoveHead
+			sim.step_t = 0
+		}
+	case .MoveNext:
 		if sim.step_t > 1 {
 			sim.state = .Compare
 			sim.step_t = 0
 		}
-	case .Compare:
-		advance(sim, COMPARE_DURATION.dur)
-		insertion_sort_compare(sim)
 	}
 }
 insertion_sort_compare :: proc(sim: ^InsersionSort) {
