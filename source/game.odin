@@ -8,8 +8,13 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
-GRAPH_HEIGHT2 :: 200.
-GRAPH_HEIGHT :: 1.
+InsertionSortData :: struct {
+	bar_component_height:  f32, // [0, 1]
+	cursor_component_size: f32, // [0, 1]
+	initialization:        AnimationData,
+	move_head:             AnimationData,
+}
+SIM_WINDOW :: [2]f32{400, 400}
 
 CONST_FPS :: 60.
 SCREEN_WIDTH :: 1200.
@@ -58,7 +63,7 @@ InsersionSort :: struct {
 	step_t:                f32,
 }
 Randomize :: struct {}
-Simulation :: union {
+Simulation :: union #no_nil {
 	Randomize,
 	InsersionSort,
 }
@@ -101,7 +106,7 @@ start :: proc() {
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
 	COUNT :: 5
-	insort: InsersionSort
+	// insort: InsersionSort
 	for i in 0 ..< COUNT {
 		bar := BarValue {
 			value = f32(i),
@@ -110,7 +115,8 @@ start :: proc() {
 		}
 		append(&g.values, bar)
 	}
-	g.sim = insort
+	// g.sim = insort
+	// g.sim_window = {0, 0, 400, 300}
 }
 end :: proc() {
 	// Freeing memory will be done in "game_end".

@@ -190,7 +190,7 @@ main :: proc() {
 					game_api.pre_hot_reloaded()
 					game_memory := game_api.memory()
 					game_api = new_game_api
-					game_api.post_hot_reloaded(game_memory)
+					game_api.post_hot_reloaded(game_memory) 
 				} else {
 					// This does a full reset. That's basically like opening and
 					// closing the game, without having to restart the executable.

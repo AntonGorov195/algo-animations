@@ -1,8 +1,8 @@
 package game
 
-import "vendor:raylib/rlgl"
 import "core:math/rand"
 import rl "vendor:raylib"
+import "vendor:raylib/rlgl"
 
 output :: proc() {
 	rand.reset(g.input.output_rng_seed)
@@ -21,110 +21,63 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-	rlgl.Scalef(1, 200, 1)
-	rlgl.PushMatrix()
+
 	switch sim in g.sim {
 	case Randomize:
-		for &bar in g.values {
-			rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
-		}
+		rlgl.PushMatrix()
+		rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
+		rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y, 1)
+		draw_bar_graph_component(g.values[:])
+		rlgl.PopMatrix()
 	case InsersionSort:
-		assert(len(g.values) > 1)
-		for &bar in g.values {
-			rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
-		}
-		// draw_bar_cursor(&g.values[int(sim.insert)], INITIALIZATION_DURATION) 
-		// draw_bar_cursor(&g.values[int(sim.compare)], INITIALIZATION_DURATION) 
+		rlgl.PushMatrix()
+		rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
+		rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y * 0.8, 1)
+		draw_bar_graph_component(g.values[:])
+		rlgl.PopMatrix()
+
+		rlgl.PushMatrix()
+		rlgl.Translatef(
+			(SCREEN_WIDTH - SIM_WINDOW.x) / 2,
+			(SCREEN_HEIGHT - SIM_WINDOW.y) / 2 + SIM_WINDOW.y * 0.8,
+			0,
+		)
+		rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y * 0.2, 1)
+		draw_bar_cursor_component(g.values[:], sim.insert)
+		rlgl.PopMatrix()
+	case:
+		unreachable()
 	}
-	rlgl.PopMatrix()
 
 	clay_raylib_render(&g.ui_cmds)
 	draw_mouse_cursor()
 }
-draw_mouse_cursor :: proc() {
-	RADIUS :: 5
-	WIDTH :: 7
-	LENGTH :: 25
-	OFFSET :: 7
-
-	pos := g.input.mouse_pos
-	rl.DrawCircleV(pos, RADIUS, rl.BLACK)
-	// rlgl.PushMatrix()
-	// rlgl.Translatef(pos.x, pos.y, 0)
-	// rlgl.Rotatef(-360. / CURSOR_LINE_COUNT - 90 / CURSOR_LINE_COUNT, 0, 0, 1)
-	// for _ in 0 ..< 5 {
-	// 	rlgl.Rotatef(360. / CURSOR_LINE_COUNT, 0, 0, -1)
-	// 	rl.DrawRectangleRec({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, rl.BLACK)
-	// 	rl.DrawRectangleLinesEx({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, 1, rl.BLACK)
-	// }
-	// rlgl.PopMatrix()
-}
-draw_bar_pointer_at::proc(tip: [2]f32) {
-	WIDTH :: 35
-	HEIGHT :: 20
-	TOP_MARGIN :: 5
-	x := tip.x 
-	y := tip.y + TOP_MARGIN 
-	rl.DrawTriangle({x, y}, {x - WIDTH / 2, y + HEIGHT}, {x + WIDTH / 2, y + HEIGHT}, rl.RED)
-}
-letter_box :: proc() -> (camera: rl.Camera2D, start, end: rl.Rectangle) {
-	camera.zoom = 1
-	{
-		real_screen_width := f32(rl.GetScreenWidth())
-		real_screen_height := f32(rl.GetScreenHeight())
-		real_aspect_ration := real_screen_width / real_screen_height
-
-		if real_aspect_ration > SCREEN_ASPECT_RATIO { 	// wider
-			zoom := real_screen_height / SCREEN_HEIGHT
-			camera.zoom = zoom
-
-			width := SCREEN_WIDTH * zoom
-			offset_x := (real_screen_width - width) / 2
-			camera.offset.x = offset_x
-
-			start.x = 0
-			start.y = 0
-			start.width = offset_x
-			start.height = real_screen_height
-
-			end.x = width + offset_x
-			end.y = 0
-			end.width = offset_x
-			end.height = real_screen_height
-
-		} else if real_aspect_ration < SCREEN_ASPECT_RATIO { 	// taller
-			zoom := real_screen_width / SCREEN_WIDTH
-			camera.zoom = zoom
-
-			height := SCREEN_HEIGHT * zoom
-			offset_y := (real_screen_height - height) / 2
-			camera.offset.y = offset_y
-
-			start.x = 0
-			start.y = 0
-			start.width = real_screen_width
-			start.height = offset_y
-
-			end.x = 0
-			end.y = height + offset_y
-			end.width = real_screen_width
-			end.height = offset_y
-		}
+BAR_GAP :: 0.3
+// x = [0, 1] y = [0, 1]
+draw_bar_graph_component :: proc(bars: []BarValue, anim: AnimationData = {}) {
+	// proportional to width of bar, 0 is no gap and 1 is equal to size of the bar
+	w := calc_bar_width(bars)
+	for bar in bars {
+		fi := interp(bar.pos.start, bar.pos.end, bar.pos.t, anim.type)
+		x := w * fi + w * BAR_GAP * fi
+		h := bar.height
+		rl.DrawRectangleRec({x, 1 - h, w, h}, rl.GREEN)
 	}
-	return
 }
-BAR_WIDTH :: 50
-BAR_GAP :: 10
-bar_rec :: proc(bar: ^BarValue, anim := AnimationData{}) -> rl.Rectangle {
-	pos := bar_bottom_left(bar, anim)
-	return {pos.x, pos.y - bar.height * GRAPH_HEIGHT, BAR_WIDTH, bar.height * GRAPH_HEIGHT}
+draw_bar_cursor_component :: proc(bars: []BarValue, pos: AnimatedFloat, anim: AnimationData = {}) {
+	CURSOR_WIDTH :: 0.05
+	tip := calc_cursor_tip(bars, pos, anim)
+	rl.DrawTriangle({tip, 0}, {tip - CURSOR_WIDTH, 1}, {tip + CURSOR_WIDTH, 1}, rl.RED)
 }
-bar_bottom_left :: proc(bar: ^BarValue, anim := AnimationData{}) -> [2]f32 {
-	i := interp(bar.pos.start, bar.pos.end, bar.pos.t, anim.type)
-	x := i * (BAR_GAP + BAR_WIDTH)
-	return {x, GRAPH_HEIGHT}
+calc_bar_width :: proc(bars: []BarValue) -> f32 {
+	count := f32(len(bars))
+	gap_count := count - 1
+	return 1 / (count + gap_count * BAR_GAP)
 }
-bar_cursor_point :: proc(bar: ^BarValue, anim := AnimationData{}) -> [2]f32 {
-	pos := bar_bottom_left(bar, anim)
-	return {pos.x + BAR_WIDTH / 2, pos.y}
+calc_cursor_tip :: proc(bars: []BarValue, pos: AnimatedFloat, anim: AnimationData = {}) -> f32 {
+	fi := interp(pos.start, pos.end, pos.t, anim.type)
+	w := calc_bar_width(bars)
+	x := w * fi + w * BAR_GAP * fi
+	x += w / 2
+	return x
 }
