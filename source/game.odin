@@ -53,14 +53,15 @@ Game :: struct {
 	// Game world
 }
 InsersionSort :: struct {
-	head, insert, compare: AnimatedFloat,
-	state:                 enum {
+	head, insert, compare:             AnimatedFloat,
+	head_idx, insert_idx, compare_idx: int,
+	state:                             enum {
 		Initialization,
 		MoveHead,
 		Swap,
 		Compare,
 	},
-	step_t:                f32,
+	step_t:                            f32,
 }
 Randomize :: struct {}
 Simulation :: union #no_nil {

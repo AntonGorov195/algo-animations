@@ -98,6 +98,20 @@ IntepolationType :: enum {
 	SmoothStep5,
 }
 IT :: IntepolationType
+interp_rect :: proc(
+	start: rl.Rectangle,
+	end: rl.Rectangle,
+	t: f32,
+	type: IntepolationType = .Linear,
+) -> rl.Rectangle {
+	// t_inter := interp01(t, type)
+	return {
+		interp(start.x, end.x, t, type),
+		interp(start.y, end.y, t, type),
+		interp(start.width, end.width, t, type),
+		interp(start.height, end.height, t, type),
+	}
+}
 interp_values_array :: proc(
 	start: $T/[$N]f32,
 	end: T,
@@ -125,7 +139,7 @@ interp01 :: proc(t: f32, type: IntepolationType = .Linear) -> f32 {
 	case .Root2:
 		return math.sqrt(t)
 	case .Root3:
-		return math.pow(t, 1. / 3.) 
+		return math.pow(t, 1. / 3.)
 	case .SmoothStep3:
 		return 3 * t * t - 2 * t * t * t
 	case .SmoothStep5:
@@ -138,6 +152,7 @@ interp :: proc {
 	interp01,
 	interp_values,
 	interp_values_array,
+	interp_rect,
 }
 // [min, max)
 rand_range :: proc(min, max: int, rng := context.random_generator) -> int {
@@ -210,4 +225,15 @@ draw_mouse_cursor :: proc() {
 	// 	rl.DrawRectangleLinesEx({OFFSET, -WIDTH / 2, LENGTH, WIDTH}, 1, rl.BLACK)
 	// }
 	// rlgl.PopMatrix()
+}
+
+extend_rect_all :: proc(rect: rl.Rectangle, ex: f32) -> rl.Rectangle {
+	return extend_rect_sides(rect, ex, ex, ex, ex)
+}
+extend_rect_sides :: proc(rect: rl.Rectangle, top, right, bottom, left: f32) -> rl.Rectangle {
+	return {rect.x - right, rect.y - top, rect.width + right + left, rect.height + top + bottom}
+}
+extend_rect :: proc {
+	extend_rect_all,
+	extend_rect_sides,
 }
