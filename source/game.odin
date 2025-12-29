@@ -8,12 +8,6 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
-InsertionSortData :: struct {
-	bar_component_height:  f32, // [0, 1]
-	cursor_component_size: f32, // [0, 1]
-	initialization:        AnimationData,
-	move_head:             AnimationData,
-}
 SIM_WINDOW :: [2]f32{400, 400}
 
 CONST_FPS :: 60.
@@ -59,18 +53,22 @@ InsersionSortState :: enum {
 	Compare,
 	MoveNext,
 }
-insert_sort_anim := [InsersionSortState]AnimationData {
-	.Initialization = {dur = 1, type = .SmoothStep3},
-	.MoveHead = {dur = 1, type = .SmoothStep3},
-	.Swap = {dur = 1, type = .SmoothStep3},
-	.Compare = {dur = 1, type = .SmoothStep3},
-	.MoveNext = {dur = 1, type = .SmoothStep3},
-}
+// insert_sort_anim := [InsersionSortState]AnimationData {
+// 	.Initialization = {dur = 1, type = .SmoothStep3},
+// 	.MoveHead = {dur = 1, type = .SmoothStep3},
+// 	.Swap = {dur = 1, type = .SmoothStep3},
+// 	.Compare = {dur = 1, type = .SmoothStep3},
+// 	.MoveNext = {dur = 1, type = .SmoothStep3},
+// }
 InsersionSort :: struct {
-	head, insert, compare:             AnimatedFloat,
-	head_idx, insert_idx, compare_idx: int,
-	state:                             InsersionSortState,
-	step_t:                            f32,
+	// head, insert, compare:             AnimatedFloat,
+	assist_opacity:            Animated(f32),
+	head_cursor:               Animated(f32),
+	insert_rect, compare_rect: Animated(rl.Rectangle),
+	head, insert, compare:     int,
+	state:                     InsersionSortState,
+	step_t:                    f32,
+	step_dur:                  f32,
 }
 Randomize :: struct {}
 Simulation :: union #no_nil {
@@ -85,24 +83,15 @@ World :: struct {
 	font_mono:    R.Font,
 	font_ui:      u16,
 	font_mono_ui: u16,
-	sim:          Simulation,
+	sort:         Simulation,
 	speed:        f32,
 	is_sorting:   bool,
 	values:       [dynamic]BarValue,
 	sim_window:   rl.Rectangle,
 }
-AnimationData :: struct {
-	dur:  f32,
-	type: IntepolationType,
-}
-AnimatedFloat :: struct {
-	t:          f32,
-	start, end: f32, // instead of index, use this to interpolate
-}
 BarValue :: struct {
-	value:  f32,
-	height: f32, // [0, 1]
-	pos:    AnimatedFloat, // animated index
+	value: f32,
+	rect:  Animated(rl.Rectangle), // animated index
 }
 g: ^Game
 start :: proc() {
@@ -118,10 +107,12 @@ start :: proc() {
 	COUNT :: 5
 	// insort: InsersionSort
 	for i in 0 ..< COUNT {
+		w := calc_bar_width(COUNT)
+		x := rect_end_pos_x(COUNT, i)
+		h := f32(i + 1) / COUNT
 		bar := BarValue {
 			value = f32(i),
-			height = f32(i + 1) / COUNT,
-			pos = {start = f32(i), end = f32(i)},
+			rect  = to_anim(rl.Rectangle{x, 1 - h, w, h}),
 		}
 		append(&g.values, bar)
 	}
@@ -131,18 +122,6 @@ start :: proc() {
 end :: proc() {
 	// Freeing memory will be done in "game_end".
 	// Here is for logic only.
-}
-AnimatedFloat32 :: struct {
-	t:     f32,
-	start: f32,
-	end:   f32,
-	dur:   f32, // when dur == 0 then value == end
-}
-AnimatedRect :: struct {
-	t:     f32,
-	dur:   f32, // when dur == 0 then value == end
-	start: rl.Rectangle,
-	end:   rl.Rectangle,
 }
 Animated :: struct($T: typeid) {
 	type:  IntepolationType,
@@ -156,15 +135,20 @@ to_anim :: proc(val: $T) -> Animated(T) {
 		// Assert T can be interpolated
 		_ = interp(val, val, 0)
 	}
-	return {end = val}
+	return {start = val, end = val}
 }
-// to_anim_f32 :: proc(val: f32) -> AnimatedFloat32 {
-// 	return {end = val}
-// }
-// to_anim_rect :: proc(val: rl.Rectangle) -> AnimatedRect {
-
-// }
-anim_change_target_f32 :: proc()
-anim_change_target_rect :: proc()
-eval_anim_f32 :: proc()
-eval_anim_rect :: proc()
+eval_anim :: proc(val: Animated($T)) -> T {
+	return interp(val.start, val.end, val.t, val.type)
+}
+anim_change_target :: proc(
+	val: Animated($T),
+	target: T,
+	type: IntepolationType,
+	dur: f32,
+) -> Animated(T) {
+	return {type = type, t = 0, dur = dur, start = eval_anim(val), end = target}
+}
+rect_end_pos_x :: proc(count: int, index: int) -> f32 {
+	w := calc_bar_width(count)
+	return w * f32(index) * (1 + BAR_GAP)
+}
