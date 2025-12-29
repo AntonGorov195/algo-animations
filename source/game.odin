@@ -8,7 +8,8 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
-GRAPH_HEIGHT :: 200.
+GRAPH_HEIGHT2 :: 200.
+GRAPH_HEIGHT :: 1.
 
 CONST_FPS :: 60.
 SCREEN_WIDTH :: 1200.
@@ -73,6 +74,7 @@ World :: struct {
 	speed:        f32,
 	is_sorting:   bool,
 	values:       [dynamic]BarValue,
+	sim_window:   rl.Rectangle,
 }
 AnimationData :: struct {
 	dur:  f32,
@@ -85,7 +87,7 @@ AnimatedFloat :: struct {
 BarValue :: struct {
 	value:  f32,
 	height: f32, // [0, 1]
-	i:      AnimatedFloat, // animated index
+	pos:    AnimatedFloat, // animated index
 }
 g: ^Game
 start :: proc() {
@@ -104,7 +106,7 @@ start :: proc() {
 		bar := BarValue {
 			value = f32(i),
 			height = f32(i + 1) / COUNT,
-			i = {start = f32(i), end = f32(i)},
+			pos = {start = f32(i), end = f32(i)},
 		}
 		append(&g.values, bar)
 	}

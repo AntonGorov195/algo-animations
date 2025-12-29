@@ -1,5 +1,6 @@
 package game
 
+import "vendor:raylib/rlgl"
 import "core:math/rand"
 import rl "vendor:raylib"
 
@@ -20,6 +21,8 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
+	rlgl.Scalef(1, 200, 1)
+	rlgl.PushMatrix()
 	switch sim in g.sim {
 	case Randomize:
 		for &bar in g.values {
@@ -30,8 +33,10 @@ output :: proc() {
 		for &bar in g.values {
 			rl.DrawRectangleRec(bar_rec(&bar), rl.RED)
 		}
-		draw_bar_cursor(sim.insert, )
+		// draw_bar_cursor(&g.values[int(sim.insert)], INITIALIZATION_DURATION) 
+		// draw_bar_cursor(&g.values[int(sim.compare)], INITIALIZATION_DURATION) 
 	}
+	rlgl.PopMatrix()
 
 	clay_raylib_render(&g.ui_cmds)
 	draw_mouse_cursor()
@@ -54,13 +59,12 @@ draw_mouse_cursor :: proc() {
 	// }
 	// rlgl.PopMatrix()
 }
-draw_bar_cursor :: proc(val: AnimatedFloat, anim := AnimationData{}) {
+draw_bar_pointer_at::proc(tip: [2]f32) {
 	WIDTH :: 35
 	HEIGHT :: 20
 	TOP_MARGIN :: 5
-	cursor := bar_cursor_point(bar.i, INITIALIZATION_DURATION)
-	x := cursor.x
-	y := cursor.y + TOP_MARGIN
+	x := tip.x 
+	y := tip.y + TOP_MARGIN 
 	rl.DrawTriangle({x, y}, {x - WIDTH / 2, y + HEIGHT}, {x + WIDTH / 2, y + HEIGHT}, rl.RED)
 }
 letter_box :: proc() -> (camera: rl.Camera2D, start, end: rl.Rectangle) {
@@ -112,15 +116,15 @@ letter_box :: proc() -> (camera: rl.Camera2D, start, end: rl.Rectangle) {
 BAR_WIDTH :: 50
 BAR_GAP :: 10
 bar_rec :: proc(bar: ^BarValue, anim := AnimationData{}) -> rl.Rectangle {
-	pos := bar_bottom_left(bar.i, anim)
+	pos := bar_bottom_left(bar, anim)
 	return {pos.x, pos.y - bar.height * GRAPH_HEIGHT, BAR_WIDTH, bar.height * GRAPH_HEIGHT}
 }
-bar_bottom_left :: proc(val: AnimatedFloat, anim := AnimationData{}) -> [2]f32 {
-	i := interp(val.start, val.end, val.t, anim.type)
+bar_bottom_left :: proc(bar: ^BarValue, anim := AnimationData{}) -> [2]f32 {
+	i := interp(bar.pos.start, bar.pos.end, bar.pos.t, anim.type)
 	x := i * (BAR_GAP + BAR_WIDTH)
 	return {x, GRAPH_HEIGHT}
 }
-bar_cursor_point :: proc(val: AnimatedFloat, anim := AnimationData{}) -> [2]f32 {
-	pos := bar_bottom_left(val, anim)
+bar_cursor_point :: proc(bar: ^BarValue, anim := AnimationData{}) -> [2]f32 {
+	pos := bar_bottom_left(bar, anim)
 	return {pos.x + BAR_WIDTH / 2, pos.y}
 }

@@ -37,44 +37,44 @@ process :: proc() {
 		g.sim = Randomize{}
 		rand.shuffle(g.values[:])
 		for &bar, i in g.values {
-			bar.i.start = interp(bar.i.start, bar.i.end, bar.i.t, RANDOMIZE_DURATION.type)
-			bar.i.end = f32(i)
-			bar.i.t = 0
+			bar.pos.start = interp(bar.pos.start, bar.pos.end, bar.pos.t, RANDOMIZE_DURATION.type)
+			bar.pos.end = f32(i)
+			bar.pos.t = 0
 		}
 	}
 
 	if g.input.start_sort {
 		if len(g.values) > 1 {
 			g.is_sorting = true
-			g.sim = InsersionSort {
-				head = {end = 1, start = 1},
-			}
+			g.sim = InsersionSort{}
 		}
 	}
 	switch &sim in g.sim {
 	case Randomize:
 		for &bar in g.values {
-			bar.i.t += g.input.dt * (1 + g.speed) / RANDOMIZE_DURATION.dur
+			bar.pos.t += g.input.dt * (1 + g.speed) / RANDOMIZE_DURATION.dur
 		}
 	case InsersionSort:
 		assert(len(g.values) > 1)
 		switch sim.state {
 		case .Initialization:
-			sim.step_t += g.input.dt * (1 + g.speed) / INITIALIZATION_DURATION.dur
+			step_dt := g.input.dt * (1 + g.speed) / INITIALIZATION_DURATION.dur
+			sim.step_t += step_dt
+			for &bar in g.values {
+				bar.pos.t += step_dt
+			}
 			if sim.step_t > 1 {
 				sim.state = .MoveHead
 			}
-			for &bar in g.values {
-				bar.i.t += g.input.dt * (1 + g.speed) / INITIALIZATION_DURATION.dur
-			}
 		case .MoveHead:
-			sim.step_t += g.input.dt * (1 + g.speed) / MOVE_HEAD_DURATION.dur
+			step_dt := g.input.dt * (1 + g.speed) / MOVE_HEAD_DURATION.dur
+			sim.step_t += step_dt
+			for &bar in g.values {
+				bar.pos.t += step_dt
+			}
 			if sim.step_t > 1 {
 				sim.state = .MoveHead
 				sim.step_t = 0
-			}
-			for &bar in g.values {
-				bar.i.t += g.input.dt * (1 + g.speed) / MOVE_HEAD_DURATION.dur
 			}
 		case .Swap:
 		case .Compare:
