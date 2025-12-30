@@ -21,7 +21,18 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-
+	rl.DrawRectangleRec(
+		extend_rect(
+			rl.Rectangle {
+				(SCREEN_WIDTH - SIM_WINDOW.x) / 2,
+				(SCREEN_HEIGHT - SIM_WINDOW.y) / 2,
+				SIM_WINDOW.x,
+				SIM_WINDOW.y,
+			},
+			3,
+		),
+		rl.BLUE,
+	)
 	draw_sort(&g.main_sort)
 	// switch &sim in g.sort {
 	// case Randomize:
@@ -62,14 +73,6 @@ draw_bar_graph_component :: proc(bars: []BarValue) {
 		rl.DrawRectangleRec(eval_anim(bar.rect), rl.GREEN)
 	}
 }
-get_bar_rect :: proc(bars: []BarValue, index: int) -> rl.Rectangle {
-	bar := bars[index]
-	// w := calc_bar_width(bars)
-	// fi := eval_anim(bar.rect)
-	// x := w * fi + w * BAR_GAP * fi
-	// h := bar.height
-	return eval_anim(bar.rect)
-}
 // draw_bar_cursor_component :: proc(
 // 	color: rl.Color,
 // 	bars: []BarValue,
@@ -80,7 +83,7 @@ get_bar_rect :: proc(bars: []BarValue, index: int) -> rl.Rectangle {
 // 	tip := calc_cursor_tip(bars, pos, anim)
 // 	rl.DrawTriangle({tip, 0}, {tip - CURSOR_WIDTH, 1}, {tip + CURSOR_WIDTH, 1}, color)
 // }
-calc_bar_width :: proc(count: int) -> f32 {
+calc_bar_width :: proc(count: int, gap: f32 = BAR_GAP) -> f32 {
 	gap_count := f32(count) - 1
 	return 1 / (f32(count) + gap_count * BAR_GAP)
 }
@@ -178,3 +181,13 @@ draw_insert_sort :: proc(data: ^InsersionSort) {
 
 // 	return interp(rect_s, rect_e, pos.t, MOVE_HEAD_DURATION.type)
 // }
+draw_sort_cursor :: proc(bound: rl.Rectangle, color: rl.Color) {
+	// tip := bound
+	rl.DrawTriangle(
+		{bound.x + bound.width / 2, bound.y},
+		{bound.x, bound.y + bound.height},
+		{bound.x + bound.width, bound.y + bound.height},
+		color,
+	)
+	// rl.DrawTriangle({tip, 0}, {tip - CURSOR_WIDTH, 1}, {tip + CURSOR_WIDTH, 1}, color)
+}

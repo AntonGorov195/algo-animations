@@ -121,7 +121,7 @@ start :: proc() {
 		}
 		bar := BarValue {
 			value  = f32(i),
-			height = h,
+			height =  h,
 			rect   = rect,
 		}
 		append(&g.main_sort.values, bar)
@@ -163,3 +163,4 @@ rect_end_pos_x :: proc(count: int, index: int) -> f32 {
 	w := calc_bar_width(count)
 	return w * f32(index) * (1 + BAR_GAP)
 }
+
