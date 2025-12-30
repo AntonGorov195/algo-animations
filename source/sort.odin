@@ -165,16 +165,16 @@ draw_sort :: proc(sort: ^Sort) {
 	switch algo in sort.algo {
 	case nil:
 		rlgl.PushMatrix()
-		rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
-		rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y, 1)
+		rlgl.Translatef(g.main_sort.frame.x, g.main_sort.frame.y, 0)
+		rlgl.Scalef(g.main_sort.frame.width, g.main_sort.frame.height, 1)
 		for bar in sort.values {
 			rl.DrawRectangleRec(eval_anim(bar.rect), rl.BLACK)
 		}
 		rlgl.PopMatrix()
 	case InsersionSort:
 		rlgl.PushMatrix()
-		rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
-		rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y, 1)
+		rlgl.Translatef(g.main_sort.frame.x, g.main_sort.frame.y, 0)
+		rlgl.Scalef(g.main_sort.frame.width, g.main_sort.frame.height, 1)
 		{
 			CURSOR_WIDTH :: 0.1
 			cursor := eval_anim(algo.head_cursor)

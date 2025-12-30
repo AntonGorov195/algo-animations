@@ -63,6 +63,29 @@ process :: proc() {
 	process_sort(&g.main_sort)
 	clean_sound_pool()
 }
+
+advance_sort :: proc(sort: ^Sort, anim: ^Animated($T)) {
+	anim.t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / anim.dur
+}
+bubble_sort_demo :: proc(values: []f32) {
+	// init
+	end: int
+	current: int
+	// move end
+	for end = len(values); end > 0; end -= 0 {
+		// start buble
+		for current = 0; current < end - 1; current += 1 {
+			// compare
+			if values[current] > values[current] {
+				// swap
+				slice.swap(values, current, current + 1)
+			}
+		}
+	}
+}
+quick_sort_demo :: proc(values: []f32) {
+	 
+}
 insertion_sort_demo :: proc(values: []f32) {
 	// start
 	head: int
@@ -86,8 +109,4 @@ insertion_sort_demo :: proc(values: []f32) {
 		}
 	}
 	// end
-}
-
-advance_sort :: proc(sort: ^Sort, anim: ^Animated($T)) {
-	anim.t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / anim.dur
 }

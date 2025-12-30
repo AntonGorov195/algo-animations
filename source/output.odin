@@ -21,18 +21,7 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-	rl.DrawRectangleRec(
-		extend_rect(
-			rl.Rectangle {
-				(SCREEN_WIDTH - SIM_WINDOW.x) / 2,
-				(SCREEN_HEIGHT - SIM_WINDOW.y) / 2,
-				SIM_WINDOW.x,
-				SIM_WINDOW.y,
-			},
-			10,
-		),
-		rl.LIGHTGRAY,
-	)
+	rl.DrawRectangleRec(extend_rect(g.main_sort.frame, 10), rl.LIGHTGRAY)
 	draw_sort(&g.main_sort)
 
 	clay_raylib_render(&g.ui_cmds)
