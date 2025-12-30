@@ -8,7 +8,7 @@ import "vendor:clay"
 import hm "vendor:odin-handle-map/handle_map_growing"
 import rl "vendor:raylib"
 
-SIM_WINDOW :: [2]f32{400, 400}
+SIM_WINDOW :: [2]f32{1100, 800}
 
 CONST_FPS :: 60.
 SCREEN_WIDTH :: 1200.
@@ -74,12 +74,10 @@ SortAlgo :: union {
 	InsersionSort,
 }
 Sort :: struct {
-	algo:     SortAlgo,
-	speed:    f32,
-	step_t:   f32,
-	step_dur: f32,
-	frame:    rl.Rectangle, // where the animation will happened
-	values:   [dynamic]BarValue,
+	algo:   SortAlgo,
+	speed:  f32,
+	frame:  rl.Rectangle, // where the animation will happened
+	values: [dynamic]BarValue,
 }
 World :: struct {
 	// Add stuff here for hot reloading to work
@@ -109,8 +107,8 @@ start :: proc() {
 	_ = ui_add_font(0)
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
-	COUNT :: 5
-	// insort: InsersionSort
+	COUNT :: 64
+	g.main_sort.frame = extend_rect(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -50)
 	for i in 0 ..< COUNT {
 		w := calc_bar_width(COUNT)
 		x := rect_end_pos_x(COUNT, i)
@@ -121,14 +119,11 @@ start :: proc() {
 		}
 		bar := BarValue {
 			value  = f32(i),
-			height =  h,
+			height = h,
 			rect   = rect,
 		}
 		append(&g.main_sort.values, bar)
 	}
-	// g.main_sort.frame = {0, 0, 400, 300}
-	// g.sim = insort
-	// g.sim_window = {0, 0, 400, 300}
 }
 end :: proc() {
 	// Freeing memory will be done in "game_end".
@@ -163,4 +158,3 @@ rect_end_pos_x :: proc(count: int, index: int) -> f32 {
 	w := calc_bar_width(count)
 	return w * f32(index) * (1 + BAR_GAP)
 }
-
