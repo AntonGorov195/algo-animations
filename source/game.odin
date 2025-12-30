@@ -70,10 +70,16 @@ InsersionSort :: struct {
 	step_t:                    f32,
 	step_dur:                  f32,
 }
-Randomize :: struct {}
-Simulation :: union #no_nil {
-	Randomize,
+SortAlgo :: union {
 	InsersionSort,
+}
+Sort :: struct {
+	algo:     SortAlgo,
+	speed:    f32,
+	step_t:   f32,
+	step_dur: f32,
+	frame:    rl.Rectangle, // where the animation will happened
+	values:   [dynamic]BarValue,
 }
 World :: struct {
 	// Add stuff here for hot reloading to work
@@ -83,15 +89,14 @@ World :: struct {
 	font_mono:    R.Font,
 	font_ui:      u16,
 	font_mono_ui: u16,
-	sort:         Simulation,
+	main_sort:    Sort,
 	speed:        f32,
 	is_sorting:   bool,
-	values:       [dynamic]BarValue,
-	sim_window:   rl.Rectangle,
 }
 BarValue :: struct {
-	value: f32,
-	rect:  Animated(rl.Rectangle), // animated index
+	value:  f32,
+	height: f32, //original size
+	rect:   Animated(rl.Rectangle), // animated index
 }
 g: ^Game
 start :: proc() {
@@ -110,12 +115,18 @@ start :: proc() {
 		w := calc_bar_width(COUNT)
 		x := rect_end_pos_x(COUNT, i)
 		h := f32(i + 1) / COUNT
-		bar := BarValue {
-			value = f32(i),
-			rect  = to_anim(rl.Rectangle{x, 1 - h, w, h}),
+		rect := Animated(rl.Rectangle) {
+			start = rl.Rectangle{x, 1 - h, w, h},
+			end   = rl.Rectangle{x, 1 - h, w, h},
 		}
-		append(&g.values, bar)
+		bar := BarValue {
+			value  = f32(i),
+			height = h,
+			rect   = rect,
+		}
+		append(&g.main_sort.values, bar)
 	}
+	// g.main_sort.frame = {0, 0, 400, 300}
 	// g.sim = insort
 	// g.sim_window = {0, 0, 400, 300}
 }

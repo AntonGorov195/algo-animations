@@ -208,6 +208,7 @@ get_token :: proc(t: ^Tokenizer) -> (token: Token, err: Error) {
 			if t.spec != .JSON {
 				switch str {
 				case "Infinity": token.kind = .Infinity
+				case "Inf": token.kind = .Infinity
 				case "NaN":      token.kind = .NaN
 				}
 			}
@@ -234,6 +235,7 @@ get_token :: proc(t: ^Tokenizer) -> (token: Token, err: Error) {
 				}
 				switch string(t.data[token.offset:t.offset]) {
 				case "-Infinity": token.kind = .Infinity
+				case "-Inf": token.kind = .Infinity
 				case "-NaN":      token.kind = .NaN
 				}
 			}

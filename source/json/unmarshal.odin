@@ -382,7 +382,7 @@ unmarshal_value :: proc(p: ^Parser, v: any) -> (err: Unmarshal_Error) {
 	ti := reflect.type_info_base(type_info_of(v.id))
 	if u, ok := ti.variant.(reflect.Type_Info_Union); ok && token.kind != .Null {
 		unmarshal_expect_token(p, .Open_Brace)
-		tag_field_name := parse_object_key(p, p.allocator) or_return
+		tag_field_name := parse_object_key(p, p.allocator) or_return 
 		defer delete(tag_field_name, p.allocator)
 		if tag_field_name != "t" {
 			return Unmarshal_Data_Error.Invalid_Data
@@ -395,20 +395,20 @@ unmarshal_value :: proc(p: ^Parser, v: any) -> (err: Unmarshal_Error) {
 		value_field_name := parse_object_key(p, p.allocator) or_return
 		defer delete(tag_field_name, p.allocator)
 		if value_field_name != "v" {
-			return Unmarshal_Data_Error.Invalid_Data
-		}
+			return Unmarshal_Data_Error.Invalid_Data 
+		} 
 		unmarshal_expect_token(p, .Colon)
 
 		#partial switch tag in tag_field_value {
 		case Integer:
 			raw_tag := tag
-			if !u.no_nil {raw_tag += 1}
+			if !u.no_nil {raw_tag -= 1} 
 
 			variant := u.variants[raw_tag]
 			variant_any := any{v.data, variant.id}
 			unmarshal_value(p, variant_any) or_return
 			tag_ptr := any{rawptr(uintptr(v.data) + u.tag_offset), u.tag_type.id}
-			_ = assign_int(tag_ptr, raw_tag)
+			_ = assign_int(tag_ptr, tag)
 		case:
 			return Unmarshal_Data_Error.Invalid_Data
 		}
@@ -499,7 +499,7 @@ unmarshal_value :: proc(p: ^Parser, v: any) -> (err: Unmarshal_Error) {
 			case .Infinity:
 				advance_token(p)
 				f: f64 = 0h7ff0000000000000
-				if token.text[0] == '-' {
+				if token.text[0] == '-' { 
 					f = 0hfff0000000000000
 				}
 				if assign_float(v, f) {

@@ -22,33 +22,34 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
 
-	switch &sim in g.sort {
-	case Randomize:
-		rlgl.PushMatrix()
-		rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
-		rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y, 1)
-		draw_bar_graph_component(g.values[:])
-		rlgl.PopMatrix()
-	case InsersionSort:
-		// rlgl.PushMatrix()
-		// rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
-		// rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y * 0.8, 1)
-		// draw_bar_graph_component(g.values[:])
-		// rlgl.PopMatrix()
+	draw_sort(&g.main_sort)
+	// switch &sim in g.sort {
+	// case Randomize:
+	// 	rlgl.PushMatrix()
+	// 	rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
+	// 	rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y, 1)
+	// 	draw_bar_graph_component(g.values[:])
+	// 	rlgl.PopMatrix()
+	// case InsersionSort:
+	// 	// rlgl.PushMatrix()
+	// 	// rlgl.Translatef((SCREEN_WIDTH - SIM_WINDOW.x) / 2, (SCREEN_HEIGHT - SIM_WINDOW.y) / 2, 0)
+	// 	// rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y * 0.8, 1)
+	// 	// draw_bar_graph_component(g.values[:])
+	// 	// rlgl.PopMatrix()
 
-		// rlgl.PushMatrix()
-		// rlgl.Translatef(
-		// 	(SCREEN_WIDTH - SIM_WINDOW.x) / 2,
-		// 	(SCREEN_HEIGHT - SIM_WINDOW.y) / 2 + SIM_WINDOW.y * 0.8,
-		// 	0,
-		// )
-		// rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y * 0.2, 1)
-		// draw_bar_cursor_component(g.values[:], sim.insert)
-		// rlgl.PopMatrix()
-		draw_insert_sort(&sim)
-	case:
-		unreachable()
-	}
+	// 	// rlgl.PushMatrix()
+	// 	// rlgl.Translatef(
+	// 	// 	(SCREEN_WIDTH - SIM_WINDOW.x) / 2,
+	// 	// 	(SCREEN_HEIGHT - SIM_WINDOW.y) / 2 + SIM_WINDOW.y * 0.8,
+	// 	// 	0,
+	// 	// )
+	// 	// rlgl.Scalef(SIM_WINDOW.x, SIM_WINDOW.y * 0.2, 1)
+	// 	// draw_bar_cursor_component(g.values[:], sim.insert)
+	// 	// rlgl.PopMatrix()
+	// 	draw_insert_sort(&sim)
+	// case:
+	// 	unreachable()
+	// }
 
 	clay_raylib_render(&g.ui_cmds)
 	draw_mouse_cursor()
@@ -116,7 +117,7 @@ draw_insert_sort :: proc(data: ^InsersionSort) {
 
 	defer {
 		push_bar_matrix()
-		draw_bar_graph_component(g.values[:])
+		// draw_bar_graph_component(g.values[:])
 		pop_bar_matrix()
 	}
 

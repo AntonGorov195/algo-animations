@@ -34,81 +34,71 @@ process :: proc() {
 	}
 
 	if g.input.randomize {
-		g.sort = Randomize{}
-		rand.shuffle(g.values[:])
-		for &bar, i in g.values {
+		g.main_sort.algo = nil
+		rand.shuffle(g.main_sort.values[:])
+		for &bar, _ in g.main_sort.values {
 			current := eval_anim(bar.rect)
-			bar.rect = anim_change_target(
-				bar.rect,
-				rl.Rectangle {
-					rect_end_pos_x(len(g.values), i),
-					current.y,
-					current.width,
-					current.height,
-				},
-				.Linear,
-				0.1,
-			)
-			// bar.pos.start = interp(bar.pos.start, bar.pos.end, bar.pos.t, RANDOMIZE_DURATION.type)
-			// bar.pos.end = f32(i)
+			bar.rect.start = current
 			bar.rect.t = 0
 		}
 	}
 
 	if g.input.start_sort {
-		if len(g.values) > 1 {
+		if len(g.main_sort.values) > 1 {
 			g.is_sorting = true
 			// queue animation for initializing the insertion sort display.
-			g.sort = InsersionSort {
+			g.main_sort.algo = InsersionSort {
 				step_dur = 1,
 				assist_opacity = {dur = 1, end = 1, type = .SmoothStep3},
 			}
 		}
 	}
-	switch &sort in g.sort {
-	case Randomize:
-		for &bar in g.values {
-			bar.rect.t += g.input.dt * (1 + g.speed) / bar.rect.dur
-		}
-	case InsersionSort:
-		sort.step_t += g.input.dt * (1 + g.speed) / sort.step_dur
-		for &bar in g.values {
-			advance_anim(&bar.rect)
-		}
-		advance_anim(&sort.assist_opacity)
-		advance_anim(&sort.head_cursor)
-		advance_anim(&sort.insert_rect)
-		advance_anim(&sort.compare_rect)
-		switch sort.state {
-		case .Initialization:
-			// ended
-			if sort.step_t >= 1 {
-				assert(sort.head == 0)
-				assert(sort.insert == 0)
-				assert(sort.compare == 0)
-				sort.state = .MoveHead // start comparing the two
-				// queue animation here
-			}
-		case .MoveHead:
-			// Two cases
-			// 	1. move head forward
-			// 	2. the head is already at the last element, finalize the animation
-		case .Swap:
-			if sort.step_t >= 1 {
-				// sort.state = .MoveNext // continue sort
-				// sort.state = .MoveHead // reached the start of the list 
-			}
-		case .Compare:
-			if sort.step_t >= 1 {
-				// Depending on the result of the compare
-				// sort.state = .Swap // 
-				// sort.state = .MoveHead // start comparing the two
-			}
-		case .MoveNext:
-		}
-	case:
-		unreachable()
-	}
+	process_sort(&g.main_sort)
+	// switch &sort in g.sort {
+	// case nil:
+	// 	sort.step_t += g.input.dt * (1 + g.speed) / sort.step_dur
+	// 	for &bar in g.values {
+	// 		advance_anim(&bar.rect)
+	// 	}
+	// case InsersionSort:
+	// 	sort.step_t += g.input.dt * (1 + g.speed) / sort.step_dur
+	// 	for &bar in g.values {
+	// 		advance_anim(&bar.rect)
+	// 	}
+	// 	advance_anim(&sort.assist_opacity)
+	// 	advance_anim(&sort.head_cursor)
+	// 	advance_anim(&sort.insert_rect)
+	// 	advance_anim(&sort.compare_rect)
+	// 	switch sort.state {
+	// 	case .Initialization:
+	// 		// ended
+	// 		if sort.step_t >= 1 {
+	// 			assert(sort.head == 0)
+	// 			assert(sort.insert == 0)
+	// 			assert(sort.compare == 0)
+	// 			sort.state = .MoveHead // start comparing the two
+	// 			// queue animation here
+	// 		}
+	// 	case .MoveHead:
+	// 	// Two cases
+	// 	// 	1. move head forward
+	// 	// 	2. the head is already at the last element, finalize the animation
+	// 	case .Swap:
+	// 		if sort.step_t >= 1 {
+	// 			// sort.state = .MoveNext // continue sort
+	// 			// sort.state = .MoveHead // reached the start of the list
+	// 		}
+	// 	case .Compare:
+	// 		if sort.step_t >= 1 {
+	// 			// Depending on the result of the compare
+	// 			// sort.state = .Swap //
+	// 			// sort.state = .MoveHead // start comparing the two
+	// 		}
+	// 	case .MoveNext:
+	// 	}
+	// case:
+	// 	unreachable()
+	// }
 	clean_sound_pool()
 }
 insertion_sort_demo :: proc(values: []f32) {
@@ -116,7 +106,7 @@ insertion_sort_demo :: proc(values: []f32) {
 	head: int
 	insert: int
 	compared: int
-	
+
 	// move next
 	for head = 1; head < len(values); head += 1 {
 		insert = head
@@ -241,6 +231,6 @@ insertion_sort_demo :: proc(values: []f32) {
 // 	// 	sim.compare = bar_change_index(sim.compare, sim.compare_idx, COMPARE_DURATION)
 // 	// }
 // }
-advance_anim :: proc(anim: ^Animated($T)) {
-	anim.t += g.input.dt * (1 + g.speed) / anim.dur
+advance_sort :: proc(sort: ^Sort, anim: ^Animated($T)) {
+	anim.t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / anim.dur
 }
