@@ -45,7 +45,7 @@ Game :: struct {
 	camera:                rl.Camera2D,
 	letter_box_start:      rl.Rectangle,
 	letter_box_end:        rl.Rectangle,
-	// Game world
+	render_texture:        rl.RenderTexture,
 }
 World :: struct {
 	// Add stuff here for hot reloading to work

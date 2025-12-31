@@ -9,7 +9,7 @@ output :: proc() {
 	// rl.UpdateMusicStream(R.get(g.knife))
 	switch g.recording.state {
 	case .Normal:
-		rl.ClearBackground(rl.GRAY)
+		rl.ClearBackground(rl.DARKGRAY)
 	case .Record:
 		rl.ClearBackground(rl.DARKGREEN)
 	case .Replay:
@@ -21,7 +21,7 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-	rl.DrawRectangleRec(extend_rect(g.main_sort.frame, 10), rl.LIGHTGRAY)
+	rl.DrawRectangleRec(extend_rect(g.main_sort.frame, 10), rl.GRAY)
 	draw_sort(&g.main_sort)
 
 	clay_raylib_render(&g.ui_cmds)
