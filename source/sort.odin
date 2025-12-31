@@ -44,9 +44,7 @@ draw_sort :: proc(sort: ^Sort) {
 	switch &algo in sort.algo {
 	case nil:
 		push_rect_matrix(sort.frame)
-		for bar in sort.values {
-			rl.DrawRectangleRec(eval_anim(bar.rect), rl.BLACK)
-		}
+		draw_bars(sort.values[:])
 		rlgl.PopMatrix()
 	case InsersionSort:
 		draw_insertion_sort(sort, &algo)

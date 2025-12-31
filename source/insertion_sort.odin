@@ -260,8 +260,12 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	}
 	rl.DrawRectangleRec(eval_anim(algo.compare_rect), rl.ORANGE)
 	rl.DrawRectangleRec(eval_anim(algo.insert_rect), rl.RED)
-	for bar in sort.values {
-		rl.DrawRectangleRec(eval_anim(bar.rect), rl.BLACK)
-	}
+    draw_bars(sort.values[:])
 	pop_rect_matrix()
+}
+
+draw_bars::proc(bars: []BarValue) {
+	for bar, i in bars {
+		rl.DrawRectangleRec(eval_anim(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
+	}
 }

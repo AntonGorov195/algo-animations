@@ -76,13 +76,13 @@ process :: proc() {
 			algo := BubbleSort {
 				step_dur = DUR,
 				assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
-				head_cursor = {
+				end_cursor = {
 					dur = DUR,
 					start = g.main_sort.values[0].rect.start.x +
 					g.main_sort.values[0].rect.start.width / 2,
 					type = g.main_sort.values[0].rect.type,
 				},
-				insert_rect = {
+				bubble_rect = {
 					dur = DUR,
 					start = extend_rect(eval_anim(g.main_sort.values[0].rect), 0),
 					type = g.main_sort.values[0].rect.type,
@@ -116,7 +116,7 @@ bubble_sort_demo :: proc(values: []f32) {
 	compare: int
 	// move end
 	for end = len(values); end > 0; end -= 0 {
-		// start buble
+		// bubble
 		for current = 0; current < end - 1; current += 1 {
 			// compare
 			compare = current + 1
@@ -140,7 +140,7 @@ insertion_sort_demo :: proc(values: []f32) {
 	for head = 1; head < len(values); head += 1 {
 		insert = head
 		compared = insert - 1
-		// compate
+		// compare
 		for values[compared] > values[insert] {
 			// swap
 			slice.swap(values, insert, compared)

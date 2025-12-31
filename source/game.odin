@@ -60,9 +60,10 @@ World :: struct {
 	is_sorting:   bool,
 }
 BarValue :: struct {
-	value:  f32,
-	height: f32, //original size
-	rect:   Animated(rl.Rectangle), // animated index
+	value:      f32,
+	height:     f32, //original size
+	rect:       Animated(rl.Rectangle), // animated index
+	real_place: int,
 }
 g: ^Game
 start :: proc() {
@@ -86,9 +87,10 @@ start :: proc() {
 			end   = rl.Rectangle{x, 1 - h, w, h},
 		}
 		bar := BarValue {
-			value  = f32(i),
-			height = h,
-			rect   = rect,
+			value      = f32(i),
+			height     = h,
+			rect       = rect,
+			real_place = i,
 		}
 		append(&g.main_sort.values, bar)
 	}
