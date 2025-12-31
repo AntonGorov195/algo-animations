@@ -4,7 +4,7 @@ import "core:slice"
 import rl "vendor:raylib"
 import "vendor:raylib/rlgl"
 
-process_sort :: proc(sort: ^Sort) {
+process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 	assert(sort != nil)
 	switch &algo in sort.algo {
 	case nil:
@@ -19,13 +19,14 @@ process_sort :: proc(sort: ^Sort) {
 			x := rect_end_pos_x(count, i)
 			bar.rect.end = rl.Rectangle{x, 1 - bar.height, w, bar.height}
 		}
+		return true
 	case InsersionSort:
 		MOVE_HEAD_DUR :: 0.1
 		SWAP_DUR :: 0.1
 		COMPARE_DUR :: 0.1
 		MOVE_NEXT_DUR :: 0.1
 		defer {
-			algo.step_t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / algo.step_dur
+			algo.step_time += g.input.dt * (1 + sort.speed) * (1 + g.speed)
 			for &bar in sort.values {
 				advance_sort(sort, &bar.rect)
 			}
@@ -53,7 +54,7 @@ process_sort :: proc(sort: ^Sort) {
 				extend_rect(compare_rect, 0.01),
 			)
 			// init finished
-			if algo.step_t > 1 {
+			if algo.step_time > algo.step_dur {
 				algo.step_dur = 1
 				if algo.head + 1 >= len(sort.values) {
 					sort.algo = nil
@@ -64,7 +65,7 @@ process_sort :: proc(sort: ^Sort) {
 					}
 				} else {
 					// move on
-					insertion_sort_change_state(sort, &algo, .MoveHead, MOVE_HEAD_DUR)
+					return insertion_sort_change_state(sort, &algo, .MoveHead, MOVE_HEAD_DUR)
 				}
 			}
 		case .MoveHead:
@@ -80,8 +81,8 @@ process_sort :: proc(sort: ^Sort) {
 				extend_rect(insert_rect, 0.01),
 				extend_rect(compare_rect, 0.01),
 			)
-			if algo.step_t > 1 {
-				insertion_sort_change_state(sort, &algo, .Compare, COMPARE_DUR)
+			if algo.step_time > algo.step_dur {
+				return insertion_sort_change_state(sort, &algo, .Compare, COMPARE_DUR)
 			}
 		case .Swap:
 			// MoveNext, MoveHead, Fin
@@ -95,7 +96,7 @@ process_sort :: proc(sort: ^Sort) {
 				extend_rect(insert_rect, 0.01),
 				extend_rect(compare_rect, 0.01),
 			)
-			if algo.step_t > 1 {
+			if algo.step_time > algo.step_dur {
 				if algo.compare <= 0 {
 					if algo.head + 1 >= len(sort.values) {
 						sort.algo = nil
@@ -109,20 +110,20 @@ process_sort :: proc(sort: ^Sort) {
 						algo.head += 1
 						algo.insert = algo.head
 						algo.compare = algo.head - 1
-						insertion_sort_change_state(sort, &algo, .MoveHead, MOVE_HEAD_DUR)
+						return insertion_sort_change_state(sort, &algo, .MoveHead, MOVE_HEAD_DUR)
 					}
 				} else {
 					algo.insert -= 1
 					algo.compare -= 1
-					insertion_sort_change_state(sort, &algo, .MoveNext, MOVE_NEXT_DUR)
+					return insertion_sort_change_state(sort, &algo, .MoveNext, MOVE_NEXT_DUR)
 				}
 			}
 		case .Compare:
 			// Swap, MoveHead, Fin
-			if algo.step_t > 1 {
+			if algo.step_time > algo.step_dur {
 				if sort.values[algo.compare].value > sort.values[algo.insert].value {
 					slice.swap(sort.values[:], algo.compare, algo.insert)
-					insertion_sort_change_state(sort, &algo, .Swap, SWAP_DUR)
+					return insertion_sort_change_state(sort, &algo, .Swap, SWAP_DUR)
 				} else {
 					if algo.head + 1 >= len(sort.values) {
 						sort.algo = nil
@@ -136,7 +137,7 @@ process_sort :: proc(sort: ^Sort) {
 						algo.head += 1
 						algo.insert = algo.head
 						algo.compare = algo.head - 1
-						insertion_sort_change_state(sort, &algo, .MoveHead, MOVE_HEAD_DUR)
+						return insertion_sort_change_state(sort, &algo, .MoveHead, MOVE_HEAD_DUR)
 					}
 				}
 			}
@@ -152,13 +153,14 @@ process_sort :: proc(sort: ^Sort) {
 				extend_rect(insert_rect, 0.01),
 				extend_rect(compare_rect, 0.01),
 			)
-			if algo.step_t > 1 {
-				insertion_sort_change_state(sort, &algo, .Compare, COMPARE_DUR)
+			if algo.step_time > algo.step_dur {
+				return insertion_sort_change_state(sort, &algo, .Compare, COMPARE_DUR)
 			}
 		}
 	case:
 		unreachable()
 	}
+	return true
 }
 draw_sort :: proc(sort: ^Sort) {
 	assert(sort != nil)
@@ -290,6 +292,8 @@ insertion_sort_change_state :: proc(
 	algo: ^InsersionSort,
 	state: InsersionSortState,
 	dur: f32,
+) -> (
+	is_completed: bool,
 ) {
 	for &bar, i in sort.values {
 		bar.rect.start = eval_anim(bar.rect)
@@ -297,10 +301,11 @@ insertion_sort_change_state :: proc(
 		bar.rect.t = 0
 		bar.rect.dur = dur
 	}
-	algo.step_t = 0
+	algo.step_time -= algo.step_dur
 	algo.step_dur = dur // dur
 	algo.state = state
 	insertion_sort_start(algo)
 	insertion_sort_dur(algo, algo.step_dur, algo.step_dur, algo.step_dur, algo.step_dur)
 	insertion_sort_t(algo, 0, 0, 0, 0)
+	return algo.step_time < algo.step_dur
 }

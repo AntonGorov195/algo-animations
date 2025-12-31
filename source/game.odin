@@ -67,7 +67,7 @@ InsersionSort :: struct {
 	insert_rect, compare_rect: Animated(rl.Rectangle),
 	head, insert, compare:     int,
 	state:                     InsersionSortState,
-	step_t:                    f32,
+	step_time:                    f32,
 	step_dur:                  f32,
 }
 SortAlgo :: union {

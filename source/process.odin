@@ -1,5 +1,6 @@
 package game
 
+import "core:log"
 import "core:math/rand"
 import "core:slice"
 import "vendor:clay"
@@ -60,7 +61,13 @@ process :: proc() {
 			g.main_sort.algo = algo
 		}
 	}
-	process_sort(&g.main_sort)
+
+	for i in 0 ..< 10_000 {
+		if process_sort(&g.main_sort) {
+			break
+		}
+		log.info(i)
+	}
 	clean_sound_pool()
 }
 
@@ -71,20 +78,22 @@ bubble_sort_demo :: proc(values: []f32) {
 	// init
 	end: int
 	current: int
+	compare: int
 	// move end
 	for end = len(values); end > 0; end -= 0 {
 		// start buble
 		for current = 0; current < end - 1; current += 1 {
 			// compare
-			if values[current] > values[current] {
+			compare = current + 1
+			if values[current] > values[compare] {
 				// swap
-				slice.swap(values, current, current + 1)
+				slice.swap(values, current, compare)
 			}
 		}
 	}
 }
 quick_sort_demo :: proc(values: []f32) {
-	 
+	// pivoits: [dynamic]int
 }
 insertion_sort_demo :: proc(values: []f32) {
 	// start
