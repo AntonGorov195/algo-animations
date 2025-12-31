@@ -55,8 +55,8 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 			)
 			// init finished
 			if algo.step_time > algo.step_dur {
-				algo.step_dur = 1
 				if algo.head + 1 >= len(sort.values) {
+					algo.step_dur = 1
 					sort.algo = nil
 					for &bar in sort.values {
 						bar.rect.start = eval_anim(bar.rect)
