@@ -62,3 +62,11 @@ push_rect_matrix :: proc(rect: rl.Rectangle) {
 pop_rect_matrix :: proc() {
 	rlgl.PopMatrix()
 }
+reset_sort :: proc(sort: ^Sort) {
+	sort.algo = nil
+	for &bar in sort.values {
+		bar.rect.start = eval_anim(bar.rect)
+		bar.rect.t = 0
+		bar.rect.dur = 1
+	}
+}

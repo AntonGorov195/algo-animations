@@ -135,13 +135,7 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 			algo.end = len(sort.values) - 1
 			algo.compare += 1
 			if algo.end <= 1 {
-				algo.step_dur = 1
-				sort.algo = nil
-				for &bar in sort.values {
-					bar.rect.start = eval_anim(bar.rect)
-					bar.rect.t = 0
-					bar.rect.dur = 1
-				}
+				reset_sort(sort)
 			} else {
 				return bubble_sort_change_state(sort, algo, .MoveEnd, MOVE_HEAD_DUR)
 			}
@@ -160,16 +154,10 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 		)
 		if algo.step_time > algo.step_dur {
 			if algo.end == 0 {
-				algo.step_dur = 1
-				sort.algo = nil
-				for &bar in sort.values {
-					bar.rect.start = eval_anim(bar.rect)
-					bar.rect.t = 0
-					bar.rect.dur = 1
-				}
+				reset_sort(sort)
 			} else {
-			    return bubble_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
-            }
+				return bubble_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
+			}
 		}
 	case .Swap:
 		// MoveNext, MoveEnd
@@ -258,4 +246,16 @@ draw_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) {
 	rl.DrawRectangleRec(eval_anim(algo.bubble_rect), rl.RED)
 	draw_bars(sort.values[:])
 	pop_rect_matrix()
+}
+bubble_animate_step :: proc(sort: ^Sort, algo: ^BubbleSort, head, insert, compare: int) {
+	end_rect := bubble_sort_fin_rect(sort.values[:], head)
+	bubble_rect := bubble_sort_fin_rect(sort.values[:], insert)
+	compare_rect := bubble_sort_fin_rect(sort.values[:], compare)
+	bubble_sort_target(
+		algo,
+		1,
+		end_rect.x + end_rect.width / 2,
+		extend_rect(bubble_rect, 0.01),
+		extend_rect(compare_rect, 0.01),
+	)
 }

@@ -122,30 +122,13 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 
 	switch algo.state {
 	case .Initialization:
-		// DONE
-		// MoveHead, Fin
-		head_rect := insert_sort_fin_rect(sort.values[:], algo.head)
-		insert_rect := insert_sort_fin_rect(sort.values[:], algo.insert)
-		compare_rect := insert_sort_fin_rect(sort.values[:], algo.compare)
-		insertion_sort_target(
-			algo,
-			1,
-			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
-		)
+		insertion_animate_step(sort, algo, algo.head, algo.insert, algo.compare)
 		// init finished
 		if algo.step_time > algo.step_dur {
-            algo.head += 1
-            algo.insert += 1
+			algo.head += 1
+			algo.insert += 1
 			if algo.head >= len(sort.values) {
-				algo.step_dur = 1
-				sort.algo = nil
-				for &bar in sort.values {
-					bar.rect.start = eval_anim(bar.rect)
-					bar.rect.t = 0
-					bar.rect.dur = 1
-				}
+				reset_sort(sort)
 			} else {
 				// move on
 				return insertion_sort_change_state(sort, algo, .MoveHead, MOVE_HEAD_DUR)
@@ -154,40 +137,17 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 	case .MoveHead:
 		// DONE
 		// Compare
-		head_rect := insert_sort_fin_rect(sort.values[:], algo.head)
-		insert_rect := insert_sort_fin_rect(sort.values[:], algo.insert)
-		compare_rect := insert_sort_fin_rect(sort.values[:], algo.compare)
-		insertion_sort_target(
-			algo,
-			1,
-			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
-		)
+		insertion_animate_step(sort, algo, algo.head, algo.insert, algo.compare)
 		if algo.step_time > algo.step_dur {
 			return insertion_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
 		}
 	case .Swap:
 		// MoveNext, MoveHead, Fin
-		head_rect := insert_sort_fin_rect(sort.values[:], algo.head)
-		insert_rect := insert_sort_fin_rect(sort.values[:], algo.insert - 1)
-		compare_rect := insert_sort_fin_rect(sort.values[:], algo.compare + 1)
-		insertion_sort_target(
-			algo,
-			1,
-			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
-		)
+		insertion_animate_step(sort, algo, algo.head, algo.insert - 1, algo.compare + 1)
 		if algo.step_time > algo.step_dur {
 			if algo.compare <= 0 {
 				if algo.head + 1 >= len(sort.values) {
-					sort.algo = nil
-					for &bar in sort.values {
-						bar.rect.start = eval_anim(bar.rect)
-						bar.rect.t = 0
-						bar.rect.dur = 1
-					}
+					reset_sort(sort)
 				} else {
 					// reached start
 					algo.head += 1
@@ -209,12 +169,7 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 				return insertion_sort_change_state(sort, algo, .Swap, SWAP_DUR)
 			} else {
 				if algo.head + 1 >= len(sort.values) {
-					sort.algo = nil
-					for &bar in sort.values {
-						bar.rect.start = eval_anim(bar.rect)
-						bar.rect.t = 0
-						bar.rect.dur = 1
-					}
+					reset_sort(sort)
 				} else {
 					// move on
 					algo.head += 1
@@ -226,16 +181,7 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 		}
 	case .MoveNext:
 		// Compare
-		head_rect := insert_sort_fin_rect(sort.values[:], algo.head)
-		insert_rect := insert_sort_fin_rect(sort.values[:], algo.insert)
-		compare_rect := insert_sort_fin_rect(sort.values[:], algo.compare)
-		insertion_sort_target(
-			algo,
-			1,
-			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
-		)
+		insertion_animate_step(sort, algo, algo.head, algo.insert, algo.compare)
 		if algo.step_time > algo.step_dur {
 			return insertion_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
 		}
@@ -262,12 +208,24 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	}
 	rl.DrawRectangleRec(eval_anim(algo.compare_rect), rl.ORANGE)
 	rl.DrawRectangleRec(eval_anim(algo.insert_rect), rl.RED)
-    draw_bars(sort.values[:])
+	draw_bars(sort.values[:])
 	pop_rect_matrix()
 }
 
-draw_bars::proc(bars: []BarValue) {
+draw_bars :: proc(bars: []BarValue) {
 	for bar, i in bars {
 		rl.DrawRectangleRec(eval_anim(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
 	}
+}
+insertion_animate_step :: proc(sort: ^Sort, algo: ^InsersionSort, head, insert, compare: int) {
+	head_rect := insert_sort_fin_rect(sort.values[:], head)
+	insert_rect := insert_sort_fin_rect(sort.values[:], insert)
+	compare_rect := insert_sort_fin_rect(sort.values[:], compare)
+	insertion_sort_target(
+		algo,
+		1,
+		head_rect.x + head_rect.width / 2,
+		extend_rect(insert_rect, 0.01),
+		extend_rect(compare_rect, 0.01),
+	)
 }
