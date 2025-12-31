@@ -19,11 +19,11 @@ input :: proc() {
 	if rl.IsKeyPressed(.R) {
 		input.randomize = true
 	}
-	if rl.IsKeyPressed(.E) {
-		input.start_sort = true
+	if rl.IsKeyPressed(.I) {
+		input.start_insertion_sort = true
 	}
-	if rl.IsKeyPressed(.E) {
-		input.pause_sort = true
+	if rl.IsKeyPressed(.B) {
+		input.start_bubble_sort = true
 	}
 	input.process_rng_seed = rand.uint64()
 	input.output_rng_seed = rand.uint64()

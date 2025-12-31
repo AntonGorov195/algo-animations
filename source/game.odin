@@ -18,14 +18,15 @@ WINDOW_NAME :: "Algos"
 WINDOW_CONFIG_FLAGS :: rl.ConfigFlags{.WINDOW_RESIZABLE, .VSYNC_HINT}
 
 Input :: struct {
-	dt:               f32,
-	mouse_pos:        [2]f32,
-	click:            bool,
-	randomize:        bool,
-	start_sort:       bool,
-	pause_sort:       bool,
-	process_rng_seed: u64,
-	output_rng_seed:  u64,
+	dt:                   f32,
+	mouse_pos:            [2]f32,
+	click:                bool,
+	randomize:            bool,
+	start_insertion_sort: bool,
+	start_bubble_sort:    bool,
+	// pause_sort:       bool,
+	process_rng_seed:     u64,
+	output_rng_seed:      u64,
 }
 Game :: struct {
 	using world:           ^World,
@@ -45,39 +46,6 @@ Game :: struct {
 	letter_box_start:      rl.Rectangle,
 	letter_box_end:        rl.Rectangle,
 	// Game world
-}
-InsersionSortState :: enum {
-	Initialization,
-	MoveHead,
-	Swap,
-	Compare,
-	MoveNext,
-}
-// insert_sort_anim := [InsersionSortState]AnimationData {
-// 	.Initialization = {dur = 1, type = .SmoothStep3},
-// 	.MoveHead = {dur = 1, type = .SmoothStep3},
-// 	.Swap = {dur = 1, type = .SmoothStep3},
-// 	.Compare = {dur = 1, type = .SmoothStep3},
-// 	.MoveNext = {dur = 1, type = .SmoothStep3},
-// }
-InsersionSort :: struct {
-	// head, insert, compare:             AnimatedFloat,
-	assist_opacity:            Animated(f32),
-	head_cursor:               Animated(f32),
-	insert_rect, compare_rect: Animated(rl.Rectangle),
-	head, insert, compare:     int,
-	state:                     InsersionSortState,
-	step_time:                    f32,
-	step_dur:                  f32,
-}
-SortAlgo :: union {
-	InsersionSort,
-}
-Sort :: struct {
-	algo:   SortAlgo,
-	speed:  f32,
-	frame:  rl.Rectangle, // where the animation will happened
-	values: [dynamic]BarValue,
 }
 World :: struct {
 	// Add stuff here for hot reloading to work
