@@ -106,18 +106,15 @@ process :: proc() {
 	clean_sound_pool()
 }
 
-advance_sort :: proc(sort: ^Sort, anim: ^Animated($T)) {
-	anim.t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / anim.dur
-}
 bubble_sort_demo :: proc(values: []f32) {
 	// init
 	end: int
 	current: int
 	compare: int
 	// move end
-	for end = len(values); end > 0; end -= 0 {
+	for end = len(values) - 1; end > 0; end -= 1 {
 		// bubble
-		for current = 0; current < end - 1; current += 1 {
+		for current = 0; current < end; current += 1 {
 			// compare
 			compare = current + 1
 			if values[current] > values[compare] {
@@ -126,9 +123,6 @@ bubble_sort_demo :: proc(values: []f32) {
 			}
 		}
 	}
-}
-quick_sort_demo :: proc(values: []f32) {
-	// pivoits: [dynamic]int
 }
 insertion_sort_demo :: proc(values: []f32) {
 	// start
@@ -153,4 +147,10 @@ insertion_sort_demo :: proc(values: []f32) {
 		}
 	}
 	// end
+}
+quick_sort_demo :: proc(values: []f32) {
+	// pivoits: [dynamic]int
+}
+advance_sort :: proc(sort: ^Sort, anim: ^Animated($T)) {
+	anim.t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / anim.dur
 }

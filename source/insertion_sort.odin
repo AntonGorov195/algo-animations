@@ -136,7 +136,9 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 		)
 		// init finished
 		if algo.step_time > algo.step_dur {
-			if algo.head + 1 >= len(sort.values) {
+            algo.head += 1
+            algo.insert += 1
+			if algo.head >= len(sort.values) {
 				algo.step_dur = 1
 				sort.algo = nil
 				for &bar in sort.values {
