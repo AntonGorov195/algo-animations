@@ -85,6 +85,11 @@ bubble_sort_change_state :: proc(
 ) -> (
 	is_completed: bool,
 ) {
+	if state == .MoveEnd {
+		play_sound(g.move_end_sount)
+	} else if state == .Swap {
+		play_sound(g.swap_sound)
+	}
 	for &bar, i in sort.values {
 		bar.rect.start = eval_anim(bar.rect)
 		bar.rect.end = bubble_sort_fin_rect(sort.values[:], i)
@@ -128,20 +133,14 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 			algo,
 			1,
 			end_rect.x + end_rect.width / 2,
-			extend_rect(bubble_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(bubble_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		if algo.step_time > algo.step_dur {
 			algo.end = len(sort.values) - 1
 			algo.compare += 1
 			if algo.end <= 1 {
-				algo.step_dur = 1
-				sort.algo = nil
-				for &bar in sort.values {
-					bar.rect.start = eval_anim(bar.rect)
-					bar.rect.t = 0
-					bar.rect.dur = 1
-				}
+				reset_sort(sort)
 			} else {
 				return bubble_sort_change_state(sort, algo, .MoveEnd, MOVE_HEAD_DUR)
 			}
@@ -155,18 +154,12 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 			algo,
 			1,
 			end_rect.x + end_rect.width / 2,
-			extend_rect(bubble_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(bubble_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		if algo.step_time > algo.step_dur {
 			if algo.end == 0 {
-				algo.step_dur = 1
-				sort.algo = nil
-				for &bar in sort.values {
-					bar.rect.start = eval_anim(bar.rect)
-					bar.rect.t = 0
-					bar.rect.dur = 1
-				}
+				reset_sort(sort)
 			} else {
 			    return bubble_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
             }
@@ -180,8 +173,8 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 			algo,
 			1,
 			end_rect.x + end_rect.width / 2,
-			extend_rect(bubble_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(bubble_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		if algo.step_time > algo.step_dur {
 			// if we swapped the end, then move
@@ -227,8 +220,8 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 			algo,
 			1,
 			end_rect.x + end_rect.width / 2,
-			extend_rect(bubble_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(bubble_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		if algo.step_time > algo.step_dur {
 			return bubble_sort_change_state(sort, algo, .Compare, COMPARE_DUR)

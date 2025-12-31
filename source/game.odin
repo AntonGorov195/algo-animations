@@ -45,19 +45,24 @@ Game :: struct {
 	camera:                rl.Camera2D,
 	letter_box_start:      rl.Rectangle,
 	letter_box_end:        rl.Rectangle,
-	render_texture:        rl.RenderTexture,
 }
 World :: struct {
 	// Add stuff here for hot reloading to work
-	input:        Input,
-	time:         f32,
-	font:         R.Font,
-	font_mono:    R.Font,
-	font_ui:      u16,
-	font_mono_ui: u16,
-	main_sort:    Sort,
-	speed:        f32,
-	is_sorting:   bool,
+	is_filming:     bool,
+	film_frame:     int,
+	input:          Input,
+	time:           f32,
+	font:           R.Font,
+	font_mono:      R.Font,
+	font_ui:        u16,
+	font_mono_ui:   u16,
+	main_sort:      Sort,
+	speed:          f32,
+	is_sorting:     bool,
+	new_year:       R.Texture,
+	swap_sound:     R.Sound,
+	move_end_sount: R.Sound,
+	hohoho:         R.Sound,
 }
 BarValue :: struct {
 	value:      f32,
@@ -76,7 +81,11 @@ start :: proc() {
 	_ = ui_add_font(0)
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
-	COUNT :: 16
+	g.new_year = R.load_texture("new_year.png")
+	g.swap_sound = R.load_sound("swap.wav")
+	g.move_end_sount = R.load_sound("moveend.wav")
+	g.hohoho = R.load_sound("hohoho.mp3")
+	COUNT :: 10
 	g.main_sort.frame = extend_rect(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -50)
 	for i in 0 ..< COUNT {
 		w := calc_bar_width(COUNT)
@@ -88,7 +97,7 @@ start :: proc() {
 		}
 		bar := BarValue {
 			value      = f32(i),
-			height     = h,
+			height     = 1,
 			rect       = rect,
 			real_place = i,
 		}

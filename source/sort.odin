@@ -1,7 +1,11 @@
 package game
 
+import R "resources"
 import rl "vendor:raylib"
 import "vendor:raylib/rlgl"
+
+SELECTION_RECT_EXTENDS :: 0.003
+BAR_GAP :: 0.03
 
 SortAlgo :: union {
 	InsersionSort,
@@ -61,4 +65,27 @@ push_rect_matrix :: proc(rect: rl.Rectangle) {
 }
 pop_rect_matrix :: proc() {
 	rlgl.PopMatrix()
+}
+draw_bars :: proc(bars: []BarValue) {
+	for bar, i in bars {
+		new_year := R.get(g.new_year)
+		w := f32(new_year.width) / f32(len(bars))
+		rl.DrawTexturePro(
+			new_year,
+			{w * f32(bar.real_place), 0, w, f32(new_year.height)},
+			eval_anim(bar.rect),
+			{},
+			0,
+			bar.real_place == i ? {255, 255, 255, 255} : {127, 127, 127, 255},
+		)
+	}
+}
+reset_sort :: proc(sort: ^Sort) {
+	play_sound(g.hohoho)
+	sort.algo = nil
+	for &bar in sort.values {
+		bar.rect.start = eval_anim(bar.rect)
+		bar.rect.t = 0
+		bar.rect.dur = 1
+	}
 }

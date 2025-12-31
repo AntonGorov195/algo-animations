@@ -20,6 +20,7 @@ InsersionSort :: struct {
 	step_dur:                  f32,
 }
 
+
 INSERTION_SORT_CURSOR_SIZE :: 0.1
 insert_sort_fin_rect :: proc(vals: []BarValue, idx: int) -> rl.Rectangle {
 	PADDING :: 0.03
@@ -87,6 +88,11 @@ insertion_sort_change_state :: proc(
 ) -> (
 	is_completed: bool,
 ) {
+	if state == .MoveHead {
+		play_sound(g.move_end_sount)
+	} else if state == .Swap {
+		play_sound(g.swap_sound)
+	}
 	for &bar, i in sort.values {
 		bar.rect.start = eval_anim(bar.rect)
 		bar.rect.end = insert_sort_fin_rect(sort.values[:], i)
@@ -131,21 +137,15 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 			algo,
 			1,
 			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(insert_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		// init finished
 		if algo.step_time > algo.step_dur {
-            algo.head += 1
-            algo.insert += 1
+			algo.head += 1
+			algo.insert += 1
 			if algo.head >= len(sort.values) {
-				algo.step_dur = 1
-				sort.algo = nil
-				for &bar in sort.values {
-					bar.rect.start = eval_anim(bar.rect)
-					bar.rect.t = 0
-					bar.rect.dur = 1
-				}
+				reset_sort(sort)
 			} else {
 				// move on
 				return insertion_sort_change_state(sort, algo, .MoveHead, MOVE_HEAD_DUR)
@@ -161,8 +161,8 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 			algo,
 			1,
 			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(insert_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		if algo.step_time > algo.step_dur {
 			return insertion_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
@@ -176,18 +176,13 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 			algo,
 			1,
 			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(insert_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		if algo.step_time > algo.step_dur {
 			if algo.compare <= 0 {
 				if algo.head + 1 >= len(sort.values) {
-					sort.algo = nil
-					for &bar in sort.values {
-						bar.rect.start = eval_anim(bar.rect)
-						bar.rect.t = 0
-						bar.rect.dur = 1
-					}
+					reset_sort(sort)
 				} else {
 					// reached start
 					algo.head += 1
@@ -209,12 +204,7 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 				return insertion_sort_change_state(sort, algo, .Swap, SWAP_DUR)
 			} else {
 				if algo.head + 1 >= len(sort.values) {
-					sort.algo = nil
-					for &bar in sort.values {
-						bar.rect.start = eval_anim(bar.rect)
-						bar.rect.t = 0
-						bar.rect.dur = 1
-					}
+					reset_sort(sort)
 				} else {
 					// move on
 					algo.head += 1
@@ -233,8 +223,8 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 			algo,
 			1,
 			head_rect.x + head_rect.width / 2,
-			extend_rect(insert_rect, 0.01),
-			extend_rect(compare_rect, 0.01),
+			extend_rect(insert_rect, SELECTION_RECT_EXTENDS),
+			extend_rect(compare_rect, SELECTION_RECT_EXTENDS),
 		)
 		if algo.step_time > algo.step_dur {
 			return insertion_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
@@ -262,12 +252,6 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	}
 	rl.DrawRectangleRec(eval_anim(algo.compare_rect), rl.ORANGE)
 	rl.DrawRectangleRec(eval_anim(algo.insert_rect), rl.RED)
-    draw_bars(sort.values[:])
+	draw_bars(sort.values[:])
 	pop_rect_matrix()
-}
-
-draw_bars::proc(bars: []BarValue) {
-	for bar, i in bars {
-		rl.DrawRectangleRec(eval_anim(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
-	}
 }

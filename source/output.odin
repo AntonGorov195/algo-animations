@@ -21,41 +21,21 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-	rl.DrawRectangleRec(extend_rect(g.main_sort.frame, 10), rl.GRAY)
+	rl.DrawRectangleRounded(extend_rect(g.main_sort.frame, 30), 0.08, 5, rl.GRAY)
 	draw_sort(&g.main_sort)
 
 	clay_raylib_render(&g.ui_cmds)
-	draw_mouse_cursor()
+	// draw_mouse_cursor()
 }
-BAR_GAP :: 0.3
-// x = [0, 1] y = [0, 1]
 draw_bar_graph_component :: proc(bars: []BarValue) {
-	// proportional to width of bar, 0 is no gap and 1 is equal to size of the bar
 	for bar in bars {
 		rl.DrawRectangleRec(eval_anim(bar.rect), rl.GREEN)
 	}
 }
-// draw_bar_cursor_component :: proc(
-// 	color: rl.Color,
-// 	bars: []BarValue,
-// 	pos: AnimatedFloat,
-// 	anim: AnimationData = {},
-// ) {
-// 	CURSOR_WIDTH :: 0.05
-// 	tip := calc_cursor_tip(bars, pos, anim)
-// 	rl.DrawTriangle({tip, 0}, {tip - CURSOR_WIDTH, 1}, {tip + CURSOR_WIDTH, 1}, color)
-// }
 calc_bar_width :: proc(count: int, gap: f32 = BAR_GAP) -> f32 {
 	gap_count := f32(count) - 1
 	return 1 / (f32(count) + gap_count * BAR_GAP)
 }
-// calc_cursor_tip :: proc(bars: []BarValue, pos: AnimatedFloat, anim: AnimationData = {}) -> f32 {
-// 	fi := interp(pos.start, pos.end, pos.t, anim.type)
-// 	w := calc_bar_width(bars)
-// 	x := w * fi + w * BAR_GAP * fi
-// 	x += w / 2
-// 	return x
-// }
 draw_insert_sort :: proc(data: ^InsersionSort) {
 
 	push_bar_matrix :: proc() {
@@ -130,26 +110,11 @@ draw_insert_sort :: proc(data: ^InsersionSort) {
 	// 	pop_bar_cursor_matrix()
 	// }
 }
-// bar_animated_rect :: proc(
-// 	bars: []BarValue,
-// 	pos: AnimatedFloat,
-// 	anim: AnimationData = {},
-// ) -> rl.Rectangle {
-// 	s := int(pos.start)
-// 	e := int(pos.end)
-
-// 	rect_s := get_bar_rect(g.values[:], s, MOVE_HEAD_DURATION)
-// 	rect_e := get_bar_rect(g.values[:], e, MOVE_HEAD_DURATION)
-
-// 	return interp(rect_s, rect_e, pos.t, MOVE_HEAD_DURATION.type)
-// }
 draw_sort_cursor :: proc(bound: rl.Rectangle, color: rl.Color) {
-	// tip := bound
 	rl.DrawTriangle(
 		{bound.x + bound.width / 2, bound.y},
 		{bound.x, bound.y + bound.height},
 		{bound.x + bound.width, bound.y + bound.height},
 		color,
 	)
-	// rl.DrawTriangle({tip, 0}, {tip - CURSOR_WIDTH, 1}, {tip + CURSOR_WIDTH, 1}, color)
 }

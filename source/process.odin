@@ -97,6 +97,7 @@ process :: proc() {
 			g.main_sort.algo = algo
 		}
 	}
+
 	for i in 0 ..< 10_000 {
 		if process_sort(&g.main_sort) {
 			break
