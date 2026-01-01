@@ -97,7 +97,9 @@ bubble_sort_change_state :: proc(
 	bubble_sort_start(algo)
 	bubble_sort_dur(algo, algo.step_dur, algo.step_dur, algo.step_dur, algo.step_dur)
 	bubble_sort_t(algo, 0, 0, 0, 0)
-	return algo.step_time < algo.step_dur
+	tmp := algo.step_time < algo.step_dur
+	algo.step_time -= g.input.dt * (1 + sort.speed) * (1 + g.speed)
+	return tmp
 }
 process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bool) {
 	MOVE_HEAD_DUR :: 0.1

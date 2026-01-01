@@ -6,6 +6,7 @@ import "vendor:raylib/rlgl"
 SortAlgo :: union {
 	InsersionSort,
 	BubbleSort,
+	QuickSort,
 }
 Sort :: struct {
 	algo:   SortAlgo,
@@ -31,9 +32,11 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 		}
 		return true
 	case InsersionSort:
-		process_insertion_sort(sort, &algo)
+		return process_insertion_sort(sort, &algo)
 	case BubbleSort:
-		process_bubble_sort(sort, &algo)
+		return process_bubble_sort(sort, &algo)
+	case QuickSort:
+		process_quick_sort(sort, &algo)
 	case:
 		unreachable()
 	}
@@ -50,6 +53,8 @@ draw_sort :: proc(sort: ^Sort) {
 		draw_insertion_sort(sort, &algo)
 	case BubbleSort:
 		draw_bubble_sort(sort, &algo)
+	case QuickSort:
+		draw_quick_sort(sort, &algo)
 	case:
 		unreachable()
 	}

@@ -24,6 +24,7 @@ Input :: struct {
 	randomize:            bool,
 	start_insertion_sort: bool,
 	start_bubble_sort:    bool,
+	start_quick_sort:     bool,
 	// pause_sort:       bool,
 	process_rng_seed:     u64,
 	output_rng_seed:      u64,
@@ -77,7 +78,7 @@ start :: proc() {
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
 	COUNT :: 128
-	g.main_sort.frame = extend_rect(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -50)
+	g.main_sort.frame = extend_rect(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -0)
 	for i in 0 ..< COUNT {
 		w := calc_bar_width(COUNT)
 		x := rect_end_pos_x(COUNT, i)

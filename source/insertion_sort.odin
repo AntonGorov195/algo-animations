@@ -93,13 +93,15 @@ insertion_sort_change_state :: proc(
 		bar.rect.t = 0
 		bar.rect.dur = dur
 	}
-	algo.step_time -= algo.step_dur
+	algo.step_time -= algo.step_dur 
 	algo.step_dur = dur // dur
 	algo.state = state
 	insertion_sort_start(algo)
 	insertion_sort_dur(algo, algo.step_dur, algo.step_dur, algo.step_dur, algo.step_dur)
 	insertion_sort_t(algo, 0, 0, 0, 0)
-	return algo.step_time < algo.step_dur
+	tmp := algo.step_time < algo.step_dur
+	algo.step_time -= g.input.dt * (1 + sort.speed) * (1 + g.speed)
+	return tmp
 }
 process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_completed: bool) {
 	MOVE_HEAD_DUR :: 0.1
