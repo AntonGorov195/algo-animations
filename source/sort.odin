@@ -36,7 +36,7 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 	case BubbleSort:
 		return process_bubble_sort(sort, &algo)
 	case QuickSort:
-		process_quick_sort(sort, &algo)
+		return process_quick_sort(sort, &algo)
 	case:
 		unreachable()
 	}

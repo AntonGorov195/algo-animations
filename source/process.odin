@@ -165,7 +165,6 @@ insertion_sort_demo :: proc(values: []f32) {
 	}
 	// end
 }
-
 advance_sort :: proc(sort: ^Sort, anim: ^Animated($T)) {
 	anim.t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / anim.dur
 }

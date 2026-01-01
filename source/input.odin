@@ -25,6 +25,9 @@ input :: proc() {
 	if rl.IsKeyPressed(.B) {
 		input.start_bubble_sort = true
 	}
+	if rl.IsKeyPressed(.Q) {
+		input.start_quick_sort = true
+	}
 	input.process_rng_seed = rand.uint64()
 	input.output_rng_seed = rand.uint64()
 	g.input = input
