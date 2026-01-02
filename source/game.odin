@@ -60,12 +60,6 @@ World :: struct {
 	speed:        f32,
 	is_sorting:   bool,
 }
-BarValue :: struct {
-	value:      f32,
-	height:     f32, //original size
-	rect:       Animated(rl.Rectangle), // animated index
-	real_place: int,
-}
 g: ^Game
 start :: proc() {
 	when ODIN_OS != .JS {
@@ -93,7 +87,7 @@ start :: proc() {
 			rect       = rect,
 			real_place = i,
 		}
-		append(&g.main_sort.values, bar)
+		append(&g.main_sort.vals, bar)
 	}
 }
 end :: proc() {

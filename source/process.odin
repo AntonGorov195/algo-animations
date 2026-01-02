@@ -14,8 +14,8 @@ process :: proc() {
 
 	if g.input.randomize {
 		g.main_sort.algo = nil
-		rand.shuffle(g.main_sort.values[:])
-		for &bar, _ in g.main_sort.values {
+		rand.shuffle(g.main_sort.vals[:])
+		for &bar, _ in g.main_sort.vals {
 			current := eval(bar.rect)
 			bar.rect.start = current
 			bar.rect.t = 0
@@ -25,10 +25,10 @@ process :: proc() {
 	}
 
 	if g.input.start_insertion_sort {
-		if len(g.main_sort.values) > 0 {
+		if len(g.main_sort.vals) > 0 {
 			DUR :: 0.1
 			g.is_sorting = true
-			for &bar, _ in g.main_sort.values {
+			for &bar, _ in g.main_sort.vals {
 				current := eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
@@ -41,19 +41,19 @@ process :: proc() {
 				assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
 				head_cursor = {
 					dur = DUR,
-					start = g.main_sort.values[0].rect.start.x +
-					g.main_sort.values[0].rect.start.width / 2,
-					type = g.main_sort.values[0].rect.type,
+					start = g.main_sort.vals[0].rect.start.x +
+					g.main_sort.vals[0].rect.start.width / 2,
+					type = g.main_sort.vals[0].rect.type,
 				},
 				insert_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.values[0].rect), 0),
-					type = g.main_sort.values[0].rect.type,
+					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					type = g.main_sort.vals[0].rect.type,
 				},
 				compare_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.values[0].rect), 0),
-					type = g.main_sort.values[0].rect.type,
+					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					type = g.main_sort.vals[0].rect.type,
 				},
 			}
 
@@ -61,10 +61,10 @@ process :: proc() {
 		}
 	}
 	if g.input.start_bubble_sort {
-		if len(g.main_sort.values) > 0 {
+		if len(g.main_sort.vals) > 0 {
 			DUR :: 0.1
 			g.is_sorting = true
-			for &bar, _ in g.main_sort.values {
+			for &bar, _ in g.main_sort.vals {
 				current := eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
@@ -77,19 +77,19 @@ process :: proc() {
 				assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
 				end_cursor = {
 					dur = DUR,
-					start = g.main_sort.values[0].rect.start.x +
-					g.main_sort.values[0].rect.start.width / 2,
-					type = g.main_sort.values[0].rect.type,
+					start = g.main_sort.vals[0].rect.start.x +
+					g.main_sort.vals[0].rect.start.width / 2,
+					type = g.main_sort.vals[0].rect.type,
 				},
 				bubble_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.values[0].rect), 0),
-					type = g.main_sort.values[0].rect.type,
+					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					type = g.main_sort.vals[0].rect.type,
 				},
 				compare_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.values[0].rect), 0),
-					type = g.main_sort.values[0].rect.type,
+					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					type = g.main_sort.vals[0].rect.type,
 				},
 			}
 
@@ -97,10 +97,10 @@ process :: proc() {
 		}
 	}
 	if g.input.start_quick_sort {
-		if len(g.main_sort.values) > 0 {
+		if len(g.main_sort.vals) > 0 {
 			DUR :: 0.1
 			g.is_sorting = true
-			for &bar, _ in g.main_sort.values {
+			for &bar, _ in g.main_sort.vals {
 				current := eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR

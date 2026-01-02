@@ -53,7 +53,7 @@ QuickSort :: struct {
 process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool) {
 	defer {
 		algo.step_time += g.input.dt * (1 + sort.speed) * (1 + g.speed)
-		for &bar in sort.values {
+		for &bar in sort.vals {
 			advance_sort(sort, &bar.rect)
 		}
 		advance_sort(sort, &algo.current.rect)
@@ -61,8 +61,8 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 			advance_sort(sort, &s.rect)
 		}
 	}
-	for &bar, i in sort.values {
-		bar.rect.end = quick_sort_fin_rect(sort.values[:], i)
+	for &bar, i in sort.vals {
+		bar.rect.end = quick_sort_fin_rect(sort.vals[:], i)
 	}
 	// algo.current.rect.end = quick_sort_slice_rect(sort.values[:], algo.current)
 	switch algo.state {
@@ -72,11 +72,11 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 		}
 		s := QuickSortSlice {
 			start = 0,
-			end   = len(sort.values),
+			end   = len(sort.vals),
 		}
 		r := Animated(rl.Rectangle) {
 			start = {0.5, 0.5, 0, 0},
-			end   = quick_sort_slice_rect(sort.values[:], s),
+			end   = quick_sort_slice_rect(sort.vals[:], s),
 			dur   = quick_sort_state_dur[.Initialize],
 			type  = .SmoothStep3,
 		}
@@ -98,8 +98,8 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 			return true
 		}
 		algo.current = pop(&algo.stack)
-		algo.current.rect.start = quick_sort_slice_rect(sort.values[:], algo.current)
-		algo.current.rect.end = quick_sort_slice_rect(sort.values[:], algo.current)
+		algo.current.rect.start = quick_sort_slice_rect(sort.vals[:], algo.current)
+		algo.current.rect.end = quick_sort_slice_rect(sort.vals[:], algo.current)
 		if algo.current.start >= algo.current.end - 1 {
 			return quick_sort_change_state(sort, algo, .CheckStackLength)
 		} else {
@@ -116,7 +116,7 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 			return true
 		}
 		algo.less_count = 0
-		vals := qs_to(sort.values[:], algo.current)
+		vals := qs_to(sort.vals[:], algo.current)
 		p := vals[algo.pivot]
 		for value in vals {
 			if value.value < p.value {
@@ -132,7 +132,7 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 		if algo.step_time < algo.step_dur {
 			return true
 		}
-		vals := qs_to(sort.values[:], algo.current)
+		vals := qs_to(sort.vals[:], algo.current)
 		slice.swap(vals[:], algo.less_count, algo.pivot)
 		algo.pivot = algo.less_count
 		algo.left = 0
@@ -151,7 +151,7 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 		if algo.step_time < algo.step_dur {
 			return true
 		}
-		vals := qs_to(sort.values[:], algo.current)
+		vals := qs_to(sort.vals[:], algo.current)
 		if vals[algo.left].value < vals[algo.pivot].value {
 			algo.left += 1
 			return quick_sort_change_state(sort, algo, .CheckPartitionEnd)
@@ -162,7 +162,7 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 		if algo.step_time < algo.step_dur {
 			return true
 		}
-		vals := qs_to(sort.values[:], algo.current)
+		vals := qs_to(sort.vals[:], algo.current)
 		for vals[algo.right].value > vals[algo.pivot].value {
 			algo.right -= 1
 		}
@@ -171,7 +171,7 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 		if algo.step_time < algo.step_dur {
 			return true
 		}
-		vals := qs_to(sort.values[:], algo.current)
+		vals := qs_to(sort.vals[:], algo.current)
 		slice.swap(vals, algo.left, algo.right)
 		return quick_sort_change_state(sort, algo, .CheckPartitionEnd)
 	case .AddLeftRightStacks:
@@ -196,19 +196,19 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 	push_rect_matrix(sort.frame)
 	for s in algo.stack {
-		rl.DrawRectangleRec(quick_sort_slice_rect(sort.values[:], s), {255, 255, 255, 63})
+		rl.DrawRectangleRec(quick_sort_slice_rect(sort.vals[:], s), {255, 255, 255, 63})
 	}
-	rl.DrawRectangleRec(quick_sort_slice_rect(sort.values[:], algo.current), {255, 255, 255, 63})
-	if algo.state != .Initialize && algo.current.start + algo.pivot < len(sort.values) {
+	rl.DrawRectangleRec(quick_sort_slice_rect(sort.vals[:], algo.current), {255, 255, 255, 63})
+	if algo.state != .Initialize && algo.current.start + algo.pivot < len(sort.vals) {
 		rl.DrawRectangleRec(
 			exd(
-				quick_sort_fin_rect(sort.values[:], algo.current.start + algo.pivot),
+				quick_sort_fin_rect(sort.vals[:], algo.current.start + algo.pivot),
 				0.008,
 			),
 			{0, 0, 255, 255},
 		)
 	}
-	draw_bars(sort.values[:])
+	draw_bars(sort.vals[:])
 	pop_rect_matrix()
 }
 quick_sort_demo :: proc(values: []f32) {
@@ -269,9 +269,9 @@ quick_sort_change_state :: proc(
 ) -> (
 	is_completed: bool,
 ) {
-	for &bar, i in sort.values {
+	for &bar, i in sort.vals {
 		bar.rect.start = eval(bar.rect)
-		bar.rect.end = quick_sort_fin_rect(sort.values[:], i)
+		bar.rect.end = quick_sort_fin_rect(sort.vals[:], i)
 		bar.rect.t = 0
 		bar.rect.dur = quick_sort_state_dur[state]
 	}
@@ -315,8 +315,6 @@ quick_sort_slice_rect :: proc(vals: []BarValue, slice: QuickSortSlice) -> rl.Rec
 	gap_count := f32(count) - 1
 	used_w: f32 = 1 - 2 * QUICK_SORT_PADDING
 	w := used_w / (f32(count) + gap_count * BAR_GAP)
-	// w := used_w / (f32(count) + gap_count * BAR_GAP)
-	// w = w * f32(qs_len(slice)) + f32(qs_len(slice) - 1)* (1 + BAR_GAP)
 	x := w * f32(slice.start) * (1 + BAR_GAP) + QUICK_SORT_PADDING
 	w = w * f32(qs_len(slice)) + w * f32(qs_len(slice) - 1) * BAR_GAP
 	h := f32(1 - 2 * QUICK_SORT_PADDING - QUICK_SORT_CURSOR_SIZE)

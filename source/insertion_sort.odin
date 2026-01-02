@@ -87,9 +87,9 @@ insertion_sort_change_state :: proc(
 ) -> (
 	is_completed: bool,
 ) {
-	for &bar, i in sort.values {
+	for &bar, i in sort.vals {
 		bar.rect.start = eval(bar.rect)
-		bar.rect.end = insert_sort_fin_rect(sort.values[:], i)
+		bar.rect.end = insert_sort_fin_rect(sort.vals[:], i)
 		bar.rect.t = 0
 		bar.rect.dur = dur
 	}
@@ -110,7 +110,7 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 	MOVE_NEXT_DUR :: 0.1
 	defer {
 		algo.step_time += g.input.dt * (1 + sort.speed) * (1 + g.speed)
-		for &bar in sort.values {
+		for &bar in sort.vals {
 			advance_sort(sort, &bar.rect)
 		}
 		advance_sort(sort, &algo.assist_opacity)
@@ -118,8 +118,8 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 		advance_sort(sort, &algo.insert_rect)
 		advance_sort(sort, &algo.compare_rect)
 	}
-	for &bar, i in sort.values {
-		bar.rect.end = insert_sort_fin_rect(sort.values[:], i)
+	for &bar, i in sort.vals {
+		bar.rect.end = insert_sort_fin_rect(sort.vals[:], i)
 	}
 
 	switch algo.state {
@@ -129,7 +129,7 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 		if algo.step_time > algo.step_dur {
 			algo.head += 1
 			algo.insert += 1
-			if algo.head >= len(sort.values) {
+			if algo.head >= len(sort.vals) {
 				reset_sort(sort)
 			} else {
 				// move on
@@ -148,7 +148,7 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 		insertion_animate_step(sort, algo, algo.head, algo.insert - 1, algo.compare + 1)
 		if algo.step_time > algo.step_dur {
 			if algo.compare <= 0 {
-				if algo.head + 1 >= len(sort.values) {
+				if algo.head + 1 >= len(sort.vals) {
 					reset_sort(sort)
 				} else {
 					// reached start
@@ -166,11 +166,11 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 	case .Compare:
 		// Swap, MoveHead, Fin
 		if algo.step_time > algo.step_dur {
-			if sort.values[algo.compare].value > sort.values[algo.insert].value {
-				slice.swap(sort.values[:], algo.compare, algo.insert)
+			if sort.vals[algo.compare].value > sort.vals[algo.insert].value {
+				slice.swap(sort.vals[:], algo.compare, algo.insert)
 				return insertion_sort_change_state(sort, algo, .Swap, SWAP_DUR)
 			} else {
-				if algo.head + 1 >= len(sort.values) {
+				if algo.head + 1 >= len(sort.vals) {
 					reset_sort(sort)
 				} else {
 					// move on
@@ -210,7 +210,7 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	}
 	rl.DrawRectangleRec(eval(algo.compare_rect), rl.ORANGE)
 	rl.DrawRectangleRec(eval(algo.insert_rect), rl.RED)
-	draw_bars(sort.values[:])
+	draw_bars(sort.vals[:])
 	pop_rect_matrix()
 }
 draw_bars :: proc(bars: []BarValue) {
@@ -219,9 +219,9 @@ draw_bars :: proc(bars: []BarValue) {
 	}
 }
 insertion_animate_step :: proc(sort: ^Sort, algo: ^InsersionSort, head, insert, compare: int) {
-	head_rect := insert_sort_fin_rect(sort.values[:], head)
-	insert_rect := insert_sort_fin_rect(sort.values[:], insert)
-	compare_rect := insert_sort_fin_rect(sort.values[:], compare)
+	head_rect := insert_sort_fin_rect(sort.vals[:], head)
+	insert_rect := insert_sort_fin_rect(sort.vals[:], insert)
+	compare_rect := insert_sort_fin_rect(sort.vals[:], compare)
 	insertion_sort_target(
 		algo,
 		1,
