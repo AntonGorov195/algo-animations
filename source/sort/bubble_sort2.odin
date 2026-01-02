@@ -4,11 +4,12 @@ import "core:slice"
 import rl "vendor:raylib"
 
 BubbleSortState2 :: enum {
-	Initialization,
+	Start,
 	MoveEnd,
 	Swap,
 	Compare,
 	MoveNext,
+	Finish,
 }
 BubbleSort2 :: struct {
 	assist_opacity:            Animated(f32),
@@ -261,7 +262,19 @@ BubbleSort2 :: struct {
 // 		exd(compare_rect, 0.01),
 // 	)
 // }
+@(rodata)
+BUBBLE2_DUR: [BubbleSortState2]f32 = {
+	
+}
+process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: bool) {
+	is_completed = true
+	// descrite the algorithm on here
 
+	return
+}
+draw_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) {
+
+}
 bubble_sort_demo :: proc(values: []f32) {
 	// init
 	end: int

@@ -18,7 +18,7 @@ SortHighlightedBar :: struct {
 	rect:  Animated(rl.Rectangle),
 	color: Animated(rl.Color),
 }
-SortCursor :: struct {
+Cursor :: struct {
 	idx:    int,
 	color:  Animated(rl.Color),
 	tip:    Animated([2]f32),
@@ -114,37 +114,7 @@ reset_sort :: proc(sort: ^Sort) {
 
 // return the intended rect of the window
 // 	rect - content rect of the bar graph.
-// 	match_height - .
-_window_rect :: proc(
-	sort: ^Sort,
-	window: Window,
-	rect: rl.Rectangle,
-	match_height := false,
-	loc := #caller_location,
-) -> (
-	result: rl.Rectangle = {},
-	err: Error,
-) {
-	validate_sort_window(sort, window) or_return
-	validate_sort_index(sort, window.start) or_return
-	validate_sort_index(sort, window.end) or_return
-	// vals_count := len(sort.vals)
-	// window_count := sorting_window_len(window)
-	// if window_count < 0 {
-	// 	return {}
-	// }
-	// gap_count := f32(count) - 1
-	// used_w: f32 = 1 - 2 * QUICK_SORT_PADDING
-	// w := used_w / (f32(count) + gap_count * BAR_GAP)
-	// x := w * f32(slice.start) * (1 + BAR_GAP) + QUICK_SORT_PADDING
-	// w = w * f32(qs_len(slice)) + w * f32(qs_len(slice) - 1) * BAR_GAP
-	// h := f32(1 - 2 * QUICK_SORT_PADDING - QUICK_SORT_CURSOR_SIZE)
-	// y: f32 = QUICK_SORT_PADDING
-	return {}, nil // {x, y, w, h}
-}
-// return the intended rect of the window
-// 	rect - content rect of the bar graph.
-// 	match_height - .
+// 	match_height - window has height of the max element in slice
 window_rect :: proc(
 	sort: ^Sort,
 	window: Window,
@@ -152,47 +122,34 @@ window_rect :: proc(
 	match_height := false,
 	loc := #caller_location,
 ) -> rl.Rectangle {
-	// vals_count := len(sort.vals)
-	// window_count := sorting_window_len(window)
-	// if window_count < 0 {
-	// 	return {}
-	// }
-	// gap_count := f32(count) - 1
-	// used_w: f32 = 1 - 2 * QUICK_SORT_PADDING
-	// w := used_w / (f32(count) + gap_count * BAR_GAP)
-	// x := w * f32(slice.start) * (1 + BAR_GAP) + QUICK_SORT_PADDING
-	// w = w * f32(qs_len(slice)) + w * f32(qs_len(slice) - 1) * BAR_GAP
-	// h := f32(1 - 2 * QUICK_SORT_PADDING - QUICK_SORT_CURSOR_SIZE)
-	// y: f32 = QUICK_SORT_PADDING
-	return {} // {x, y, w, h}
-}
-// returns the intended end result of the bars value
-// 	rect - content rect of the bar graph
-_bar_rect :: proc(
-	sort: ^Sort,
-	idx: int,
-	rect: rl.Rectangle,
-	loc := #caller_location,
-) -> (
-	result: rl.Rectangle = {},
-	err: Error,
-) {
-	validate_sort_has_items(sort, loc) or_return
-	validate_sort_index(sort, idx, loc) or_return
-	return bar_rect(sort, idx, rect), nil
+	count := f32(len(sort.vals))
+	window_size := f32(window_len(window))
+	gap_count := f32(count) - 1
+	w := rect.width / (count + gap_count * BAR_GAP)
+	x := w * f32(window.start) * (1 + BAR_GAP) + rect.x
+	w *= window_size + (window_size - 1) * BAR_GAP
+	h := rect.height
+	if match_height {
+		h = 0
+		for bar in sort.vals[window.start:window.end]{
+			h = max(h, bar.height)
+		}
+	}
+	y: f32 = rect.height - h + rect.y
+	return {x, y, w, h}
 }
 bar_rect :: proc(sort: ^Sort, idx: int, rect: rl.Rectangle) -> rl.Rectangle {
+	bar := sort.vals[idx]
 	count := f32(len(sort.vals))
 	gap_count := count
 	w := rect.width / (count + gap_count * BAR_GAP)
-	x := w * f32(idx) * (1 + BAR_GAP)
-	bar := sort.vals[idx]
+	x := w * f32(idx) * (1 + BAR_GAP) + rect.x
 	h := bar.height * rect.height
-	y := 1 - h
+	y := rect.height - h + rect.y
 	return {x, y, w, h}
 }
 window_len :: proc(window: Window) -> int {
-	return window.end - window.start
+	return window.end - window.start 
 }
 window_to_slice :: proc(
 	sort: ^Sort,

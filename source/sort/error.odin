@@ -1,6 +1,7 @@
 package sort
 
 import "core:fmt"
+import rl "vendor:raylib"
 
 NoSortGiven :: struct {
 	message: string, // temporary
@@ -107,4 +108,49 @@ validate_sort_has_items :: proc(sort: ^Sort, loc := #caller_location) -> Error {
 		return err
 	}
 	return nil
+}
+// return the intended rect of the window
+// 	rect - content rect of the bar graph.
+// 	match_height - .
+_window_rect :: proc(
+	sort: ^Sort,
+	window: Window,
+	rect: rl.Rectangle,
+	match_height := false,
+	loc := #caller_location,
+) -> (
+	result: rl.Rectangle = {},
+	err: Error,
+) {
+	validate_sort_window(sort, window) or_return
+	validate_sort_index(sort, window.start) or_return
+	validate_sort_index(sort, window.end) or_return
+	// vals_count := len(sort.vals)
+	// window_count := sorting_window_len(window)
+	// if window_count < 0 {
+	// 	return {}
+	// }
+	// gap_count := f32(count) - 1
+	// used_w: f32 = 1 - 2 * QUICK_SORT_PADDING
+	// w := used_w / (f32(count) + gap_count * BAR_GAP)
+	// x := w * f32(slice.start) * (1 + BAR_GAP) + QUICK_SORT_PADDING
+	// w = w * f32(qs_len(slice)) + w * f32(qs_len(slice) - 1) * BAR_GAP
+	// h := f32(1 - 2 * QUICK_SORT_PADDING - QUICK_SORT_CURSOR_SIZE)
+	// y: f32 = QUICK_SORT_PADDING
+	return {}, nil // {x, y, w, h}
+}
+// returns the intended end result of the bars value
+// 	rect - content rect of the bar graph
+_bar_rect :: proc(
+	sort: ^Sort,
+	idx: int,
+	rect: rl.Rectangle,
+	loc := #caller_location,
+) -> (
+	result: rl.Rectangle = {},
+	err: Error,
+) {
+	validate_sort_has_items(sort, loc) or_return
+	validate_sort_index(sort, idx, loc) or_return
+	return bar_rect(sort, idx, rect), nil
 }
