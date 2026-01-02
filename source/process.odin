@@ -16,7 +16,7 @@ process :: proc() {
 		g.main_sort.algo = nil
 		rand.shuffle(g.main_sort.values[:])
 		for &bar, _ in g.main_sort.values {
-			current := eval_anim(bar.rect)
+			current := eval(bar.rect)
 			bar.rect.start = current
 			bar.rect.t = 0
 			bar.rect.type = .SmoothStep5
@@ -29,7 +29,7 @@ process :: proc() {
 			DUR :: 0.1
 			g.is_sorting = true
 			for &bar, _ in g.main_sort.values {
-				current := eval_anim(bar.rect)
+				current := eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
 				bar.rect.t = 0
@@ -47,12 +47,12 @@ process :: proc() {
 				},
 				insert_rect = {
 					dur = DUR,
-					start = extend_rect(eval_anim(g.main_sort.values[0].rect), 0),
+					start = exd(eval(g.main_sort.values[0].rect), 0),
 					type = g.main_sort.values[0].rect.type,
 				},
 				compare_rect = {
 					dur = DUR,
-					start = extend_rect(eval_anim(g.main_sort.values[0].rect), 0),
+					start = exd(eval(g.main_sort.values[0].rect), 0),
 					type = g.main_sort.values[0].rect.type,
 				},
 			}
@@ -65,7 +65,7 @@ process :: proc() {
 			DUR :: 0.1
 			g.is_sorting = true
 			for &bar, _ in g.main_sort.values {
-				current := eval_anim(bar.rect)
+				current := eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
 				bar.rect.t = 0
@@ -83,12 +83,12 @@ process :: proc() {
 				},
 				bubble_rect = {
 					dur = DUR,
-					start = extend_rect(eval_anim(g.main_sort.values[0].rect), 0),
+					start = exd(eval(g.main_sort.values[0].rect), 0),
 					type = g.main_sort.values[0].rect.type,
 				},
 				compare_rect = {
 					dur = DUR,
-					start = extend_rect(eval_anim(g.main_sort.values[0].rect), 0),
+					start = exd(eval(g.main_sort.values[0].rect), 0),
 					type = g.main_sort.values[0].rect.type,
 				},
 			}
@@ -101,7 +101,7 @@ process :: proc() {
 			DUR :: 0.1
 			g.is_sorting = true
 			for &bar, _ in g.main_sort.values {
-				current := eval_anim(bar.rect)
+				current := eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
 				bar.rect.t = 0
@@ -122,24 +122,7 @@ process :: proc() {
 	clean_sound_pool()
 }
 
-bubble_sort_demo :: proc(values: []f32) {
-	// init
-	end: int
-	current: int
-	compare: int
-	// move end
-	for end = len(values) - 1; end > 0; end -= 1 {
-		// bubble
-		for current = 0; current < end; current += 1 {
-			// compare
-			compare = current + 1
-			if values[current] > values[compare] {
-				// swap
-				slice.swap(values, current, compare)
-			}
-		}
-	}
-}
+
 insertion_sort_demo :: proc(values: []f32) {
 	// start
 	head: int

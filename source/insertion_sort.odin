@@ -74,10 +74,10 @@ insertion_sort_t :: proc(
 	algo.compare_rect.t = compare_rect
 }
 insertion_sort_start :: proc(algo: ^InsersionSort) {
-	algo.assist_opacity.start = eval_anim(algo.assist_opacity)
-	algo.head_cursor.start = eval_anim(algo.head_cursor)
-	algo.insert_rect.start = eval_anim(algo.insert_rect)
-	algo.compare_rect.start = eval_anim(algo.compare_rect)
+	algo.assist_opacity.start = eval(algo.assist_opacity)
+	algo.head_cursor.start = eval(algo.head_cursor)
+	algo.insert_rect.start = eval(algo.insert_rect)
+	algo.compare_rect.start = eval(algo.compare_rect)
 }
 insertion_sort_change_state :: proc(
 	sort: ^Sort,
@@ -88,7 +88,7 @@ insertion_sort_change_state :: proc(
 	is_completed: bool,
 ) {
 	for &bar, i in sort.values {
-		bar.rect.start = eval_anim(bar.rect)
+		bar.rect.start = eval(bar.rect)
 		bar.rect.end = insert_sort_fin_rect(sort.values[:], i)
 		bar.rect.t = 0
 		bar.rect.dur = dur
@@ -194,9 +194,9 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	push_rect_matrix(sort.frame)
 	{ 	// cursor
 		CURSOR_WIDTH :: 0.1
-		cursor := eval_anim(algo.head_cursor)
+		cursor := eval(algo.head_cursor)
 		draw_sort_cursor(
-			extend_rect(
+			exd(
 				{
 					cursor - INSERTION_SORT_CURSOR_SIZE / 4,
 					1 - INSERTION_SORT_CURSOR_SIZE,
@@ -205,17 +205,17 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 				},
 				-0.000,
 			),
-			{255, 0, 0, u8(255 * eval_anim(algo.assist_opacity))},
+			{255, 0, 0, u8(255 * eval(algo.assist_opacity))},
 		)
 	}
-	rl.DrawRectangleRec(eval_anim(algo.compare_rect), rl.ORANGE)
-	rl.DrawRectangleRec(eval_anim(algo.insert_rect), rl.RED)
+	rl.DrawRectangleRec(eval(algo.compare_rect), rl.ORANGE)
+	rl.DrawRectangleRec(eval(algo.insert_rect), rl.RED)
 	draw_bars(sort.values[:])
 	pop_rect_matrix()
 }
 draw_bars :: proc(bars: []BarValue) {
 	for bar, i in bars {
-		rl.DrawRectangleRec(eval_anim(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
+		rl.DrawRectangleRec(eval(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
 	}
 }
 insertion_animate_step :: proc(sort: ^Sort, algo: ^InsersionSort, head, insert, compare: int) {
@@ -226,7 +226,7 @@ insertion_animate_step :: proc(sort: ^Sort, algo: ^InsersionSort, head, insert, 
 		algo,
 		1,
 		head_rect.x + head_rect.width / 2,
-		extend_rect(insert_rect, 0.01),
-		extend_rect(compare_rect, 0.01),
+		exd(insert_rect, 0.01),
+		exd(compare_rect, 0.01),
 	)
 }

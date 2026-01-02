@@ -20,13 +20,12 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_start, rl.BLACK)
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
-	rl.DrawRectangleRec(extend_rect(g.main_sort.frame, 10), rl.GRAY)
+	rl.DrawRectangleRec(exd(g.main_sort.frame, 10), rl.GRAY)
 	draw_sort(&g.main_sort)
 
 	clay_raylib_render(&g.ui_cmds)
 	draw_mouse_cursor()
 }
-BAR_GAP :: 0.4
 calc_bar_width :: proc(count: int, gap: f32 = BAR_GAP) -> f32 {
 	gap_count := f32(count) - 1
 	return 1 / (f32(count) + gap_count * BAR_GAP)

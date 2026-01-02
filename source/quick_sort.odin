@@ -201,7 +201,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 	rl.DrawRectangleRec(quick_sort_slice_rect(sort.values[:], algo.current), {255, 255, 255, 63})
 	if algo.state != .Initialize && algo.current.start + algo.pivot < len(sort.values) {
 		rl.DrawRectangleRec(
-			extend_rect(
+			exd(
 				quick_sort_fin_rect(sort.values[:], algo.current.start + algo.pivot),
 				0.008,
 			),
@@ -270,7 +270,7 @@ quick_sort_change_state :: proc(
 	is_completed: bool,
 ) {
 	for &bar, i in sort.values {
-		bar.rect.start = eval_anim(bar.rect)
+		bar.rect.start = eval(bar.rect)
 		bar.rect.end = quick_sort_fin_rect(sort.values[:], i)
 		bar.rect.t = 0
 		bar.rect.dur = quick_sort_state_dur[state]
@@ -343,10 +343,10 @@ quick_sort_t_zero :: proc(algo: ^QuickSort) {
 }
 quick_sort_start :: proc(algo: ^QuickSort) {
 	for &s in algo.stack {
-		s.rect.start = eval_anim(s.rect)
+		s.rect.start = eval(s.rect)
 	}
-	algo.current.rect.start = eval_anim(algo.current.rect)
-	algo.pivot_rect.start = eval_anim(algo.pivot_rect)
-	algo.left_cursor.start = eval_anim(algo.left_cursor)
-	algo.right_cursor.start = eval_anim(algo.right_cursor)
+	algo.current.rect.start = eval(algo.current.rect)
+	algo.pivot_rect.start = eval(algo.pivot_rect)
+	algo.left_cursor.start = eval(algo.left_cursor)
+	algo.right_cursor.start = eval(algo.right_cursor)
 }

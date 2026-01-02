@@ -78,7 +78,7 @@ start :: proc() {
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
 	COUNT :: 16
-	g.main_sort.frame = extend_rect(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -0)
+	g.main_sort.frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -0)
 	for i in 0 ..< COUNT {
 		w := calc_bar_width(COUNT)
 		x := rect_end_pos_x(COUNT, i)
@@ -114,16 +114,23 @@ to_anim :: proc(val: $T) -> Animated(T) {
 	}
 	return {start = val, end = val}
 }
-eval_anim :: proc(val: Animated($T)) -> T {
+eval :: proc(val: Animated($T)) -> T {
 	return interp(val.start, val.end, val.t, val.type)
 }
-anim_change_target :: proc(
-	val: Animated($T),
+anim_retarget :: proc(
+	val: ^Animated($T),
 	target: T,
 	type: IntepolationType,
 	dur: f32,
 ) -> Animated(T) {
-	return {type = type, t = 0, dur = dur, start = eval_anim(val), end = target}
+	val^ = {
+		type  = type,
+		t     = 0,
+		dur   = dur,
+		start = eval(val^),
+		end   = target,
+	}
+	return val^
 }
 rect_end_pos_x :: proc(count: int, index: int) -> f32 {
 	w := calc_bar_width(count)

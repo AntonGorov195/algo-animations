@@ -33,6 +33,15 @@ Sort :: struct {
 	win_padding: Animated(f32),
 	values:      [dynamic]BarValue,
 }
+
+BAR_GAP :: 0.4
+PIVOT_COLOR :: rl.BLUE
+COMPARE_COLOR :: rl.ORANGE
+SELECTED_COLOR :: rl.RED
+HIGHLIGHT_EXD :: 0.01
+WINDOW_EXD :: 0.01
+DEFAULT_STEP_DUR :: 0.1
+
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 	assert(sort != nil)
 	switch &algo in sort.algo {
@@ -88,15 +97,15 @@ pop_rect_matrix :: proc() {
 reset_sort :: proc(sort: ^Sort) {
 	sort.algo = nil
 	for &bar in sort.values {
-		bar.rect.start = eval_anim(bar.rect)
+		bar.rect.start = eval(bar.rect)
 		bar.rect.t = 0
 		bar.rect.dur = 1
 	}
 }
-
-sort_window_end_rect :: proc(sort: ^Sort) {
-
+sort_window_rect :: proc(sort: ^Sort) -> rl.Rectangle {
+	return {}
 }
-bar_value_end_rect :: proc() -> rl.Rectangle {
+// returns the intended end result of the bars value
+bar_value_rect :: proc(sort: ^Sort, idx: int) -> rl.Rectangle {
 	return {}
 }

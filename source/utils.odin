@@ -233,7 +233,7 @@ extend_rect_all :: proc(rect: rl.Rectangle, ex: f32) -> rl.Rectangle {
 extend_rect_sides :: proc(rect: rl.Rectangle, top, right, bottom, left: f32) -> rl.Rectangle {
 	return {rect.x - right, rect.y - top, rect.width + right + left, rect.height + top + bottom}
 }
-extend_rect :: proc {
+exd :: proc {
 	extend_rect_all,
 	extend_rect_sides,
 }
