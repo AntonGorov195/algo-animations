@@ -8,13 +8,31 @@ SortAlgo :: union {
 	BubbleSort,
 	QuickSort,
 }
-Sort :: struct {
-	algo:   SortAlgo,
-	speed:  f32,
-	frame:  rl.Rectangle, // where the animation will happened
-	values: [dynamic]BarValue,
+SortingWindow :: struct {
+	rect:       Animated(rl.Rectangle),
+	color:      Animated(rl.Color),
+	start, end: int,
 }
-
+SortHighlightedBar :: struct {
+	idx:   int,
+	rect:  Animated(rl.Rectangle),
+	color: Animated(rl.Color),
+}
+SortCursor :: struct {
+	idx:    int,
+	color:  Animated(rl.Color),
+	tip:    Animated([2]f32),
+	width:  Animated(f32),
+	height: Animated(f32),
+}
+Sort :: struct {
+	algo:        SortAlgo,
+	speed:       f32,
+	frame:       rl.Rectangle, // where the animation will happened in screen coords
+	val_rect:    Animated(rl.Rectangle), // [0, 1]
+	win_padding: Animated(f32),
+	values:      [dynamic]BarValue,
+}
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 	assert(sort != nil)
 	switch &algo in sort.algo {
@@ -74,4 +92,11 @@ reset_sort :: proc(sort: ^Sort) {
 		bar.rect.t = 0
 		bar.rect.dur = 1
 	}
+}
+
+sort_window_end_rect :: proc(sort: ^Sort) {
+
+}
+bar_value_end_rect :: proc() -> rl.Rectangle {
+	return {}
 }

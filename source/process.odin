@@ -1,6 +1,5 @@
 package game
 
-import "core:log"
 import "core:math/rand"
 import "core:slice"
 import "vendor:clay"
@@ -109,16 +108,16 @@ process :: proc() {
 				bar.rect.type = .SmoothStep3
 			}
 			// queue animation for initializing the insertion sort display.
-			algo := QuickSort{}
-
+			algo := QuickSort{
+				step_dur = quick_sort_state_dur[.Initialize],
+			}
 			g.main_sort.algo = algo
 		}
 	}
-	for i in 0 ..< 10_000 {
+	for _ in 0 ..< 10_000 {
 		if process_sort(&g.main_sort) {
 			break
 		}
-		log.info(i)
 	}
 	clean_sound_pool()
 }

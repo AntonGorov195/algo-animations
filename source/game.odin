@@ -77,7 +77,7 @@ start :: proc() {
 	_ = ui_add_font(0)
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
-	COUNT :: 128
+	COUNT :: 16
 	g.main_sort.frame = extend_rect(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -0)
 	for i in 0 ..< COUNT {
 		w := calc_bar_width(COUNT)
