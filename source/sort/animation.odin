@@ -91,3 +91,12 @@ interp :: proc {
 	interp_values_array,
 	interp_rect,
 }
+InterpolationType :: enum {
+	Linear, // default
+	Quad,
+	Cubic,
+	Root2,
+	Root3,
+	SmoothStep3,
+	SmoothStep5,
+}

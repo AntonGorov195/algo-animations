@@ -1,42 +1,14 @@
 package sort
 
-import "core:log"
 import rl "vendor:raylib"
 import "vendor:raylib/rlgl"
 
-InterpolationType :: enum {
-	Linear, // default
-	Quad,
-	Cubic,
-	Root2,
-	Root3,
-	SmoothStep3,
-	SmoothStep5,
-}
-SortingErrorWindow :: struct {
-	sort:    ^Sort,
-	message: string, // temporary
-	bounds:  [2]int,
-}
-SortingErrorIndexOutOfBound :: struct {
-	sort:    ^Sort,
-	message: string, // temporary
-	bounds:  [2]int,
-}
-SortingErrorNoValues :: struct {
-	sort:    ^Sort,
-	message: string, // temporary
-}
-SortingError :: union {
-	SortingErrorNoValues,
-	SortingErrorIndexOutOfBound,
-}
-SortAlgo :: union {
+Algo :: union {
 	InsersionSort,
 	BubbleSort,
 	QuickSort,
 }
-SortingWindow :: struct {
+Window :: struct {
 	rect:       Animated(rl.Rectangle),
 	color:      Animated(rl.Color),
 	start, end: int,
@@ -56,7 +28,7 @@ SortCursor :: struct {
 Sort :: struct {
 	dt:        f32, // process delta time, before speed.
 	speed:     f32,
-	algo:      SortAlgo,
+	algo:      Algo,
 	frame:     rl.Rectangle, // where the animation will happened in screen coords
 	vals:      [dynamic]BarValue,
 	step_time: f32,
@@ -143,9 +115,39 @@ reset_sort :: proc(sort: ^Sort) {
 // return the intended rect of the window
 // 	rect - content rect of the bar graph.
 // 	match_height - .
-sort_window_rect :: proc(
+_window_rect :: proc(
 	sort: ^Sort,
-	window: SortingWindow,
+	window: Window,
+	rect: rl.Rectangle,
+	match_height := false,
+	loc := #caller_location,
+) -> (
+	result: rl.Rectangle = {},
+	err: Error,
+) {
+	validate_sort_window(sort, window) or_return
+	validate_sort_index(sort, window.start) or_return
+	validate_sort_index(sort, window.end) or_return
+	// vals_count := len(sort.vals)
+	// window_count := sorting_window_len(window)
+	// if window_count < 0 {
+	// 	return {}
+	// }
+	// gap_count := f32(count) - 1
+	// used_w: f32 = 1 - 2 * QUICK_SORT_PADDING
+	// w := used_w / (f32(count) + gap_count * BAR_GAP)
+	// x := w * f32(slice.start) * (1 + BAR_GAP) + QUICK_SORT_PADDING
+	// w = w * f32(qs_len(slice)) + w * f32(qs_len(slice) - 1) * BAR_GAP
+	// h := f32(1 - 2 * QUICK_SORT_PADDING - QUICK_SORT_CURSOR_SIZE)
+	// y: f32 = QUICK_SORT_PADDING
+	return {}, nil // {x, y, w, h}
+}
+// return the intended rect of the window
+// 	rect - content rect of the bar graph.
+// 	match_height - .
+window_rect :: proc(
+	sort: ^Sort,
+	window: Window,
 	rect: rl.Rectangle,
 	match_height := false,
 	loc := #caller_location,
@@ -164,55 +166,45 @@ sort_window_rect :: proc(
 	// y: f32 = QUICK_SORT_PADDING
 	return {} // {x, y, w, h}
 }
-
 // returns the intended end result of the bars value
 // 	rect - content rect of the bar graph
-bar_value_rect :: proc(
+_bar_rect :: proc(
 	sort: ^Sort,
 	idx: int,
 	rect: rl.Rectangle,
 	loc := #caller_location,
-) -> rl.Rectangle {
-	count := len(sort.vals)
-	if count < 1 {
-		log.warn("passed sort with zero values", location = loc)
-		return {}
-	}
-	if idx < 0 {
-		log.errorf("index %d in", idx, location = loc)
-		return {}
-	}
-	if idx >= count {
-		log.errorf("index %d and count %d", idx, count, location = loc)
-	}
-	gap_count := f32(count) - 1
-	w := rect.width / (f32(count) + gap_count * BAR_GAP)
+) -> (
+	result: rl.Rectangle = {},
+	err: Error,
+) {
+	validate_sort_has_items(sort, loc) or_return
+	validate_sort_index(sort, idx, loc) or_return
+	return bar_rect(sort, idx, rect), nil
+}
+bar_rect :: proc(sort: ^Sort, idx: int, rect: rl.Rectangle) -> rl.Rectangle {
+	count := f32(len(sort.vals))
+	gap_count := count
+	w := rect.width / (count + gap_count * BAR_GAP)
 	x := w * f32(idx) * (1 + BAR_GAP)
 	bar := sort.vals[idx]
 	h := bar.height * rect.height
 	y := 1 - h
 	return {x, y, w, h}
 }
-sorting_window_len :: proc(window: SortingWindow) -> int {
+window_len :: proc(window: Window) -> int {
 	return window.end - window.start
 }
-sorting_window_to_slice :: proc(
+window_to_slice :: proc(
 	sort: ^Sort,
-	window: SortingWindow,
+	window: Window,
 	loc := #caller_location,
-) -> []BarValue {
-	if window.start > window.end {
-		log.warnf(
-			"trying to make a slice form window start %v, end %v",
-			window.start,
-			window.end,
-			location = loc,
-		)
-		return {}
-	}
-	return sort.vals[window.start:window.end]
+) -> (
+	result: []BarValue = {},
+	err: Error,
+) {
+	validate_sort_window(sort, window) or_return
+	return sort.vals[window.start:window.end], nil
 }
-
 extend_rect_all :: proc(rect: rl.Rectangle, ex: f32) -> rl.Rectangle {
 	return extend_rect_sides(rect, ex, ex, ex, ex)
 }
