@@ -1,4 +1,4 @@
-package game
+package sort
 
 import "core:slice"
 import rl "vendor:raylib"

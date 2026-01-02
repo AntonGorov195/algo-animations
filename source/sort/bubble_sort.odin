@@ -1,4 +1,4 @@
-package game
+package sort
 
 import "core:slice"
 import rl "vendor:raylib"
@@ -98,7 +98,7 @@ bubble_sort_change_state :: proc(
 	bubble_sort_dur(algo, algo.step_dur, algo.step_dur, algo.step_dur, algo.step_dur)
 	bubble_sort_t(algo, 0, 0, 0, 0)
 	tmp := algo.step_time < algo.step_dur
-	algo.step_time -= g.input.dt * (1 + sort.speed) * (1 + g.speed)
+	algo.step_time -= sort.dt * (1 + sort.speed)
 	return tmp
 }
 process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bool) {
@@ -107,14 +107,15 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 	COMPARE_DUR :: 0.1
 	MOVE_NEXT_DUR :: 0.1
 	defer {
-		algo.step_time += g.input.dt * (1 + sort.speed) * (1 + g.speed)
+		dt := sort.dt * (1 + sort.speed)
+		algo.step_time += dt
 		for &bar in sort.vals {
-			advance_sort(sort, &bar.rect)
+			bar.rect.t += dt / bar.rect.dur
 		}
-		advance_sort(sort, &algo.assist_opacity)
-		advance_sort(sort, &algo.end_cursor)
-		advance_sort(sort, &algo.bubble_rect)
-		advance_sort(sort, &algo.compare_rect)
+		algo.assist_opacity.t += dt / algo.assist_opacity.dur
+		algo.end_cursor.t += dt / algo.end_cursor.dur
+		algo.bubble_rect.t += dt / algo.bubble_rect.dur
+		algo.compare_rect.t += dt / algo.compare_rect.dur
 	}
 	for &bar, i in sort.vals {
 		bar.rect.end = bubble_sort_fin_rect(sort.vals[:], i)

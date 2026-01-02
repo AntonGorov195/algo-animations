@@ -1,5 +1,6 @@
 package game
 
+import "sort"
 import "core:math/rand"
 import "core:slice"
 import "vendor:clay"
@@ -12,11 +13,12 @@ process :: proc() {
 		dev_cmd()
 	}
 
+	g.main_sort.dt = g.input.dt
 	if g.input.randomize {
 		g.main_sort.algo = nil
 		rand.shuffle(g.main_sort.vals[:])
 		for &bar, _ in g.main_sort.vals {
-			current := eval(bar.rect)
+			current := sort.eval(bar.rect)
 			bar.rect.start = current
 			bar.rect.t = 0
 			bar.rect.type = .SmoothStep5
@@ -29,14 +31,14 @@ process :: proc() {
 			DUR :: 0.1
 			g.is_sorting = true
 			for &bar, _ in g.main_sort.vals {
-				current := eval(bar.rect)
+				current := sort.eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
 				bar.rect.t = 0
 				bar.rect.type = .SmoothStep3
 			}
 			// queue animation for initializing the insertion sort display.
-			algo := InsersionSort {
+			algo := sort.InsersionSort {
 				step_dur = DUR,
 				assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
 				head_cursor = {
@@ -47,12 +49,12 @@ process :: proc() {
 				},
 				insert_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
 					type = g.main_sort.vals[0].rect.type,
 				},
 				compare_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
 					type = g.main_sort.vals[0].rect.type,
 				},
 			}
@@ -65,14 +67,14 @@ process :: proc() {
 			DUR :: 0.1
 			g.is_sorting = true
 			for &bar, _ in g.main_sort.vals {
-				current := eval(bar.rect)
+				current := sort.eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
 				bar.rect.t = 0
 				bar.rect.type = .SmoothStep3
 			}
 			// queue animation for initializing the insertion sort display.
-			algo := BubbleSort {
+			algo := sort.BubbleSort {
 				step_dur = DUR,
 				assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
 				end_cursor = {
@@ -83,12 +85,12 @@ process :: proc() {
 				},
 				bubble_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
 					type = g.main_sort.vals[0].rect.type,
 				},
 				compare_rect = {
 					dur = DUR,
-					start = exd(eval(g.main_sort.vals[0].rect), 0),
+					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
 					type = g.main_sort.vals[0].rect.type,
 				},
 			}
@@ -101,21 +103,21 @@ process :: proc() {
 			DUR :: 0.1
 			g.is_sorting = true
 			for &bar, _ in g.main_sort.vals {
-				current := eval(bar.rect)
+				current := sort.eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
 				bar.rect.t = 0
 				bar.rect.type = .SmoothStep3
 			}
 			// queue animation for initializing the insertion sort display.
-			algo := QuickSort{
-				step_dur = quick_sort_state_dur[.Initialize],
+			algo := sort.QuickSort{
+				step_dur = sort.quick_sort_state_dur[.Initialize],
 			}
 			g.main_sort.algo = algo
 		}
 	}
 	for _ in 0 ..< 10_000 {
-		if process_sort(&g.main_sort) {
+		if sort.process_sort(&g.main_sort) {
 			break
 		}
 	}
@@ -147,6 +149,6 @@ insertion_sort_demo :: proc(values: []f32) {
 	}
 	// end
 }
-advance_sort :: proc(sort: ^Sort, anim: ^Animated($T)) {
-	anim.t += g.input.dt * (1 + sort.speed) * (1 + g.speed) / anim.dur
+advance_sort :: proc(_sort: ^sort.Sort, anim: ^sort.Animated($T)) {
+	anim.t += g.input.dt * (1 + _sort.speed) / anim.dur
 }

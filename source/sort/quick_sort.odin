@@ -1,4 +1,4 @@
-package game
+package sort
 
 import "core:log"
 _ :: log
@@ -52,13 +52,14 @@ QuickSort :: struct {
 
 process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool) {
 	defer {
-		algo.step_time += g.input.dt * (1 + sort.speed) * (1 + g.speed)
+		dt := sort.dt * (1 + sort.speed)
+		algo.step_time += dt
 		for &bar in sort.vals {
-			advance_sort(sort, &bar.rect)
+			bar.rect.t += dt / bar.rect.dur
 		}
-		advance_sort(sort, &algo.current.rect)
+		algo.current.rect.t += dt / algo.current.rect.dur
 		for &s in algo.stack {
-			advance_sort(sort, &s.rect)
+			s.rect.t += dt / s.rect.dur
 		}
 	}
 	for &bar, i in sort.vals {
@@ -201,10 +202,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 	rl.DrawRectangleRec(quick_sort_slice_rect(sort.vals[:], algo.current), {255, 255, 255, 63})
 	if algo.state != .Initialize && algo.current.start + algo.pivot < len(sort.vals) {
 		rl.DrawRectangleRec(
-			exd(
-				quick_sort_fin_rect(sort.vals[:], algo.current.start + algo.pivot),
-				0.008,
-			),
+			exd(quick_sort_fin_rect(sort.vals[:], algo.current.start + algo.pivot), 0.008),
 			{0, 0, 255, 255},
 		)
 	}
@@ -276,13 +274,13 @@ quick_sort_change_state :: proc(
 		bar.rect.dur = quick_sort_state_dur[state]
 	}
 	algo.step_time -= algo.step_dur
-	algo.step_dur =  quick_sort_state_dur[state]// dur
+	algo.step_dur = quick_sort_state_dur[state] // dur
 	algo.state = state
 	quick_sort_start(algo)
 	quick_sort_dur(algo, algo.step_dur)
 	quick_sort_t_zero(algo)
 	tmp := algo.step_time < algo.step_dur
-	algo.step_time -= g.input.dt * (1 + sort.speed) * (1 + g.speed)
+	algo.step_time -= sort.dt * (1 + sort.speed)
 	return tmp
 }
 QUICK_SORT_CURSOR_SIZE :: 0.1

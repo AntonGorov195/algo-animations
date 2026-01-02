@@ -1,4 +1,4 @@
-package game
+package sort
 
 import "core:slice"
 import rl "vendor:raylib"
@@ -93,14 +93,14 @@ insertion_sort_change_state :: proc(
 		bar.rect.t = 0
 		bar.rect.dur = dur
 	}
-	algo.step_time -= algo.step_dur 
+	algo.step_time -= algo.step_dur
 	algo.step_dur = dur // dur
 	algo.state = state
 	insertion_sort_start(algo)
 	insertion_sort_dur(algo, algo.step_dur, algo.step_dur, algo.step_dur, algo.step_dur)
 	insertion_sort_t(algo, 0, 0, 0, 0)
 	tmp := algo.step_time < algo.step_dur
-	algo.step_time -= g.input.dt * (1 + sort.speed) * (1 + g.speed)
+	algo.step_time -= sort.dt * (1 + sort.speed)
 	return tmp
 }
 process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_completed: bool) {
@@ -109,14 +109,15 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 	COMPARE_DUR :: 0.1
 	MOVE_NEXT_DUR :: 0.1
 	defer {
-		algo.step_time += g.input.dt * (1 + sort.speed) * (1 + g.speed)
+		dt := sort.dt * (1 + sort.speed)
+		algo.step_time += dt
 		for &bar in sort.vals {
-			advance_sort(sort, &bar.rect)
+			bar.rect.t += dt / bar.rect.dur
 		}
-		advance_sort(sort, &algo.assist_opacity)
-		advance_sort(sort, &algo.head_cursor)
-		advance_sort(sort, &algo.insert_rect)
-		advance_sort(sort, &algo.compare_rect)
+		algo.assist_opacity.t += dt / algo.assist_opacity.dur
+		algo.head_cursor.t += dt / algo.head_cursor.dur
+		algo.insert_rect.t += dt / algo.insert_rect.dur
+		algo.compare_rect.t += dt / algo.compare_rect.dur
 	}
 	for &bar, i in sort.vals {
 		bar.rect.end = insert_sort_fin_rect(sort.vals[:], i)

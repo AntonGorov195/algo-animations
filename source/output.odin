@@ -1,7 +1,10 @@
 package game
 
+import "sort"
 import "core:math/rand"
 import rl "vendor:raylib"
+
+BAR_GAP :: sort.BAR_GAP
 
 output :: proc() {
 	rand.reset(g.input.output_rng_seed)
@@ -21,7 +24,7 @@ output :: proc() {
 		rl.DrawRectangleRec(g.letter_box_end, rl.BLACK)
 	}
 	rl.DrawRectangleRec(exd(g.main_sort.frame, 10), rl.GRAY)
-	draw_sort(&g.main_sort)
+	sort.draw_sort(&g.main_sort)
 
 	clay_raylib_render(&g.ui_cmds)
 	draw_mouse_cursor()

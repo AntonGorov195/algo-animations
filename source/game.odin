@@ -1,6 +1,7 @@
 // inotifywait -m -r -e modify,create,delete ./source | while read path action file; do     ./build_hot_reload.sh; done
 package game
 
+import "sort"
 import "base:runtime"
 import "core:mem"
 import R "resources"
@@ -56,7 +57,7 @@ World :: struct {
 	font_mono:    R.Font,
 	font_ui:      u16,
 	font_mono_ui: u16,
-	main_sort:    Sort,
+	main_sort:    sort.Sort,
 	speed:        f32,
 	is_sorting:   bool,
 }
@@ -74,14 +75,14 @@ start :: proc() {
 	COUNT :: 16
 	g.main_sort.frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -0)
 	for i in 0 ..< COUNT {
-		w := calc_bar_width(COUNT)
-		x := rect_end_pos_x(COUNT, i)
+		w := sort.calc_bar_width(COUNT)
+		x := sort.rect_end_pos_x(COUNT, i)
 		h := f32(i + 1) / COUNT
-		rect := Animated(rl.Rectangle) {
+		rect := sort.Animated(rl.Rectangle) {
 			start = rl.Rectangle{x, 1 - h, w, h},
 			end   = rl.Rectangle{x, 1 - h, w, h},
 		}
-		bar := BarValue {
+		bar := sort.BarValue {
 			value      = f32(i),
 			height     = h,
 			rect       = rect,
@@ -94,39 +95,6 @@ end :: proc() {
 	// Freeing memory will be done in "game_end".
 	// Here is for logic only.
 }
-Animated :: struct($T: typeid) {
-	type:  IntepolationType,
-	t:     f32,
-	dur:   f32, // when dur == 0 then value == end
-	start: T,
-	end:   T,
-}
-to_anim :: proc(val: $T) -> Animated(T) {
-	if false {
-		// Assert T can be interpolated
-		_ = interp(val, val, 0)
-	}
-	return {start = val, end = val}
-}
-eval :: proc(val: Animated($T)) -> T {
-	return interp(val.start, val.end, val.t, val.type)
-}
-anim_retarget :: proc(
-	val: ^Animated($T),
-	target: T,
-	type: IntepolationType,
-	dur: f32,
-) -> Animated(T) {
-	val^ = {
-		type  = type,
-		t     = 0,
-		dur   = dur,
-		start = eval(val^),
-		end   = target,
-	}
-	return val^
-}
-rect_end_pos_x :: proc(count: int, index: int) -> f32 {
-	w := calc_bar_width(count)
-	return w * f32(index) * (1 + BAR_GAP)
-}
+
+
+
