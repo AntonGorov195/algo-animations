@@ -13,7 +13,7 @@ Animated :: struct($T: typeid) {
 to_anim :: proc(val: $T) -> Animated(T) {
 	if false {
 		// Assert T can be interpolated
-		_ = interp(val, val, 0)
+		_ = interp(val, val, f32(0), InterpolationType.Linear)
 	}
 	return {start = val, end = val}
 }
@@ -86,6 +86,8 @@ interp01 :: proc(t: f32, type: InterpolationType = .Linear) -> f32 {
 	case .SmoothStep5:
 		t3 := t * t * t
 		return 6 * t3 * t * t - 15 * t3 * t + 10 * t3
+	case .JumpQuad:
+		return -4 * t * (t - 1)
 	}
 	unreachable()
 }
@@ -104,4 +106,5 @@ InterpolationType :: enum {
 	Root3,
 	SmoothStep3,
 	SmoothStep5,
+	JumpQuad, 
 }

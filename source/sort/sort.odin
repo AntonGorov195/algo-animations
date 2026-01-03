@@ -65,10 +65,9 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 			}
 		}
 		for &bar, i in sort.vals {
-			count := len(sort.vals)
-			w := calc_bar_width(count)
-			x := rect_end_pos_x(count, i)
-			bar.rect.end = rl.Rectangle{x, 1 - bar.height, w, bar.height}
+			bar.rect.dur = DEFAULT_STEP_DUR
+			bar.rect.type = .SmoothStep3
+			bar.rect.end = bar_rect(sort, i, {0, 0, 1, 1})
 		}
 		return true
 	case InsersionSort:
@@ -149,7 +148,7 @@ window_rect :: proc(
 bar_rect :: proc(sort: ^Sort, idx: int, rect: rl.Rectangle) -> rl.Rectangle {
 	bar := sort.vals[idx]
 	count := f32(len(sort.vals))
-	gap_count := count
+	gap_count := count - 1
 	w := rect.width / (count + gap_count * BAR_GAP)
 	x := w * f32(idx) * (1 + BAR_GAP) + rect.x
 	h := bar.height * rect.height
@@ -238,6 +237,7 @@ cursor :: proc {
 highlight_with_color :: proc(sort: ^Sort, highlight: ^HighlightedBar, color: rl.Color) {
 	target := sort.vals[highlight.idx].rect
 	highlight.rect.end = exd(target.end, eval(highlight.extend))
+	highlight.rect.dur = target.dur
 	highlight.rect.type = target.type
 	highlight.color.end = color
 }
