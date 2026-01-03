@@ -25,6 +25,7 @@ Input :: struct {
 	randomize:            bool,
 	start_insertion_sort: bool,
 	start_bubble_sort:    bool,
+	start_bubble2_sort:    bool,
 	start_quick_sort:     bool,
 	// pause_sort:       bool,
 	process_rng_seed:     u64,

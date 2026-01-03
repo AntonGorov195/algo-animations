@@ -20,12 +20,7 @@ to_anim :: proc(val: $T) -> Animated(T) {
 eval :: proc(val: Animated($T)) -> T {
 	return interp(val.start, val.end, val.t, val.type)
 }
-retarget :: proc(
-	val: ^Animated($T),
-	target: T,
-	type: InterpolationType,
-	dur: f32,
-) -> Animated(T) {
+retarget :: proc(val: ^Animated($T), target: T, type: InterpolationType, dur: f32) -> Animated(T) {
 	val^ = {
 		type  = type,
 		t     = 0,
@@ -40,7 +35,7 @@ interp_rect :: proc(
 	start: rl.Rectangle,
 	end: rl.Rectangle,
 	t: f32,
-	type: InterpolationType = .Linear,
+	type: InterpolationType,
 ) -> rl.Rectangle {
 	// t_inter := interp01(t, type)
 	return {
@@ -48,6 +43,15 @@ interp_rect :: proc(
 		interp(start.y, end.y, t, type),
 		interp(start.width, end.width, t, type),
 		interp(start.height, end.height, t, type),
+	}
+}
+interp_color :: proc(start: rl.Color, end: rl.Color, t: f32, type: InterpolationType) -> rl.Color {
+	// t_inter := interp01(t, type)
+	return {
+		u8(interp(f32(start.r), f32(start.r), t, type)),
+		u8(interp(f32(start.g), f32(start.g), t, type)),
+		u8(interp(f32(start.b), f32(start.b), t, type)),
+		u8(interp(f32(start.a), f32(start.a), t, type)),
 	}
 }
 interp_values_array :: proc(
@@ -90,6 +94,7 @@ interp :: proc {
 	interp_values,
 	interp_values_array,
 	interp_rect,
+	interp_color,
 }
 InterpolationType :: enum {
 	Linear, // default

@@ -1,8 +1,8 @@
 package game
 
-import "sort"
 import "core:math/rand"
 import "core:slice"
+import "sort"
 import "vendor:clay"
 import rl "vendor:raylib"
 
@@ -98,6 +98,9 @@ process :: proc() {
 			g.main_sort.algo = algo
 		}
 	}
+	if g.input.start_bubble2_sort {
+		g.main_sort.algo = sort.BubbleSort2{}
+	}
 	if g.input.start_quick_sort {
 		if len(g.main_sort.vals) > 0 {
 			DUR :: 0.1
@@ -110,7 +113,7 @@ process :: proc() {
 				bar.rect.type = .SmoothStep3
 			}
 			// queue animation for initializing the insertion sort display.
-			algo := sort.QuickSort{
+			algo := sort.QuickSort {
 				step_dur = sort.quick_sort_state_dur[.Initialize],
 			}
 			g.main_sort.algo = algo
