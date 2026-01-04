@@ -50,9 +50,9 @@ BAR_GAP :: 0.4 // Proportional to bar width
 PIVOT_COLOR :: rl.BLUE
 COMPARE_COLOR :: rl.ORANGE
 SELECTED_COLOR :: rl.RED
-HIGHLIGHT_EXD :: 0.01
+HIGHLIGHT_EXD :: 0.008
 WINDOW_EXD :: 0.01
-DEFAULT_STEP_DUR :: 0.1
+DEFAULT_STEP_DUR :: 0.3
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 	assert(sort != nil)
@@ -202,6 +202,7 @@ calc_bar_width :: proc(count: int, gap: f32 = BAR_GAP) -> f32 {
 advance_highlight_bar :: proc(sort: ^Sort, highlight: ^HighlightedBar) {
 	dt := sort.dt * (1 + sort.speed)
 	highlight.rect.t += dt / highlight.rect.dur
+	highlight.extend.t += dt / highlight.extend.dur
 	highlight.color.t += dt / highlight.color.dur
 }
 advance_cursor :: proc(sort: ^Sort, cursor: ^Cursor) {
@@ -225,7 +226,12 @@ cursor_with_size_and_color :: proc(
 	height: f32,
 	color: rl.Color,
 ) {
-
+	target := sort.vals[cursor.idx].rect
+	cursor.target.end.x = target.end.x + target.end.width / 2
+	cursor.target.end.y = target.end.y + target.end.height
+	cursor.target.t = target.t
+	cursor.target.dur = target.dur
+	cursor.target.type = target.type
 }
 cursor_bar :: proc(sort: ^Sort, cursor: ^Cursor) {
 	cursor_with_size_and_color(sort, cursor, cursor.width.end, cursor.height.end, cursor.color.end)
@@ -236,9 +242,11 @@ cursor :: proc {
 }
 highlight_with_color :: proc(sort: ^Sort, highlight: ^HighlightedBar, color: rl.Color) {
 	target := sort.vals[highlight.idx].rect
-	highlight.rect.end = exd(target.end, eval(highlight.extend))
+	highlight.rect.end = target.end
+	highlight.rect.t = target.t
 	highlight.rect.dur = target.dur
 	highlight.rect.type = target.type
+
 	highlight.color.end = color
 }
 highlight_bar :: proc(sort: ^Sort, highlight: ^HighlightedBar) {
@@ -262,6 +270,12 @@ highlight_reset :: proc(h: ^HighlightedBar, dur: f32) {
 	h.rect.dur = dur
 }
 cursor_reset :: proc(c: ^Cursor, dur: f32) {
+	c.margin.start = eval(c.margin)
+	c.color.start = eval(c.color)
+	c.target.start = eval(c.target)
+	c.width.start = eval(c.width)
+	c.height.start = eval(c.height)
+
 	c.margin.t = 0
 	c.color.t = 0
 	c.target.t = 0

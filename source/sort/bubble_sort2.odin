@@ -22,12 +22,13 @@ BubbleSort2 :: struct {
 	bubble, compare: HighlightedBar,
 	state:           BubbleSortState2,
 	next_state:      BubbleSortState2,
+	bar_frame:       rl.Rectangle,
 }
 @(rodata)
 BUBBLE2_DUR: [BubbleSortState2]f32 = {
 	.Uninitialized = 0,
-	.Initialize    = DEFAULT_STEP_DUR,
-	.Start         = DEFAULT_STEP_DUR,
+	.Initialize    = DEFAULT_STEP_DUR * 5,
+	.Start         = DEFAULT_STEP_DUR * 3,
 	.Compare       = 0, // no animation for comparing
 	.Swap          = DEFAULT_STEP_DUR,
 	.MoveCompare   = DEFAULT_STEP_DUR,
@@ -47,19 +48,70 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 	// initialize
 	if algo.state == .Uninitialized {
 		algo.next_state = .Initialize
+		{
+			// Start the bubble highlight
+			// I want it to start with the same rect as bar
+			b := &algo.bubble
+			b.rect.type = sort.vals[0].rect.type
+			b.rect.t = sort.vals[0].rect.t
+			b.rect.dur = sort.vals[0].rect.dur
+			b.rect.start = sort.vals[0].rect.start
+			b.rect.end = sort.vals[0].rect.end
 
-		algo.bubble.rect = sort.vals[0].rect
-		algo.bubble.extend.type = .SmoothStep3
-		algo.bubble.extend = to_anim([4]f32{0.01, 0.01, 0.01, 0.01})
-		algo.bubble.color.type = .SmoothStep3
-		algo.bubble.color = to_anim(rl.RED)
+			b.extend.type = .SmoothStep3
+			b.extend.t = 0
+			b.extend.dur = BUBBLE2_DUR[algo.state]
+			b.extend.start = {}
+			b.extend.end = [4]f32{HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD}
 
-		algo.compare.rect = sort.vals[0].rect
-		algo.compare.extend.type = .SmoothStep3
-		algo.compare.extend = to_anim([4]f32{0.01, 0.01, 0.01, 0.01})
-		algo.compare.color.type = .SmoothStep3
-		algo.compare.color = to_anim(rl.ORANGE)
+			b.color.type = .SmoothStep3
+			b.color.t = 0
+			b.color.dur = BUBBLE2_DUR[algo.state]
+			b.color.start = {}
+			b.color.end = rl.RED
+		}
+		{
 
+			c := &algo.compare
+			c.rect.type = sort.vals[0].rect.type
+			c.rect.t = sort.vals[0].rect.t
+			c.rect.dur = sort.vals[0].rect.dur
+			c.rect.start = sort.vals[0].rect.start
+			c.rect.end = sort.vals[0].rect.end
+
+			c.extend.type = .SmoothStep3
+			c.extend.t = 0
+			c.extend.dur = BUBBLE2_DUR[algo.state]
+			c.extend.start = {}
+			c.extend.end = [4]f32{HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD}
+
+			c.color.type = .SmoothStep3
+			c.color.t = 0
+			c.color.dur = BUBBLE2_DUR[algo.state]
+			c.color.start = {}
+			c.color.end = rl.ORANGE
+		}
+		{
+			e := &algo.end
+			rect := sort.vals[0].rect
+			e.target.type = rect.type
+			e.target.t = rect.t
+			e.target.dur = rect.dur
+			e.target.start = {rect.start.x + rect.start.width / 2, rect.start.y}
+			e.target.end = {rect.end.x + rect.end.width / 2, rect.end.y}
+
+			e.margin.type = .SmoothStep3
+			e.margin.t = 0
+			e.margin.dur = BUBBLE2_DUR[algo.state]
+			e.margin.start = 0
+			e.margin.end = 0.5
+
+			e.height = to_anim(f32(0.07))
+			e.width = to_anim(f32(0.05))
+			e.width.type = .SmoothStep3
+			e.color = to_anim(rl.RED)
+		}
+		algo.bar_frame = exd({0, 0, 1, 1}, -0.1)
 		bubble_sort_begin_next_state(sort, algo)
 		return false
 	}
@@ -74,19 +126,68 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 	// describe the animation here
 	for &bar, i in sort.vals {
 		if algo.state == .Finish {
-			bar.rect.start = bar_rect(sort, i, {0.25, 0.25, 0.5, 0.5})
+			bar.rect.start = bar_rect(sort, i, algo.bar_frame)
 			peak := bar.rect.start
-			peak.y -= 0.25
+			peak.y -= 0.2
 			bar.rect.end = peak
 			bar.rect.type = .JumpQuad
 		} else {
-			bar.rect.end = bar_rect(sort, i, {0.25, 0.25, 0.5, 0.5})
+			bar.rect.end = bar_rect(sort, i, algo.bar_frame)
 			bar.rect.type = .SmoothStep3
 		}
 	}
-	highlight(sort, &algo.bubble)
-	highlight(sort, &algo.compare)
-	cursor(sort, &algo.end)
+	if algo.state == .Finish {
+		algo.bubble.extend.type = .Cubic
+		algo.bubble.extend.t = 0
+		algo.bubble.extend.dur = BUBBLE2_DUR[.Finish]
+		algo.bubble.extend.start = algo.bubble.extend.start
+		algo.bubble.extend.end = {}
+
+		algo.compare.extend.type = .Cubic
+		algo.compare.extend.t = 0
+		algo.compare.extend.dur = BUBBLE2_DUR[.Finish]
+		algo.compare.extend.start = algo.compare.extend.start
+		algo.compare.extend.end = {}
+
+		algo.end.width.dur = BUBBLE2_DUR[.Finish]
+		algo.end.width.end = {}
+		algo.end.width.type = .Cubic
+	}
+
+	{
+		target := sort.vals[algo.bubble.idx].rect
+		b := &algo.bubble
+		// go after target
+		go_after(&b.rect, &target)
+
+		// do nothing
+		b.extend.type = b.extend.type
+		b.extend.t = b.extend.t
+		b.extend.dur = b.extend.dur
+		b.extend.start = b.extend.start
+		b.extend.end = b.extend.end
+
+		// do nothing
+		b.color.type = b.color.type
+		b.color.t = b.color.t
+		b.color.dur = b.color.dur
+		b.color.start = b.color.start
+		b.color.end = b.color.end
+	}
+
+	{
+
+		// target := sort.vals[algo.compare.idx].rect
+		// c := &algo.compare
+		// c.rect.type = target.type
+		// c.rect.t = target.t
+		// c.rect.dur = target.dur
+		// c.rect.start = c.rect.start
+		// c.rect.end = target.end
+	}
+	// highlight(sort, &algo.bubble)
+	// highlight(sort, &algo.compare)
+	// cursor(sort, &algo.end)
 
 	if sort.step_time >= sort.step_dur {
 		bubble_sort_begin_next_state(sort, algo)
@@ -107,6 +208,18 @@ draw_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) {
 		exd(eval(algo.bubble.rect), eval(algo.bubble.extend)),
 		eval(algo.bubble.color),
 	)
+	{
+		w := eval(algo.end.width)
+		h := eval(algo.end.height)
+		pos := eval(algo.end.target)
+		m := eval(algo.end.margin)
+		rl.DrawTriangle(
+			{pos.x, pos.y + m},
+			{pos.x - w / 2, pos.y + h + m},
+			{pos.x + w / 2, pos.y + h + m},
+			eval(algo.end.color),
+		)
+	}
 	draw_bars(sort.vals[:])
 	pop_rect_matrix()
 }
@@ -172,29 +285,6 @@ bubble_sort_demo :: proc(values: []f32) {
 	// make all accessories transparent.
 	// end finish
 	// DONE
-}
-bubble2_sort_change_state :: proc(
-	sort: ^Sort,
-	algo: ^BubbleSort2,
-	state: BubbleSortState2,
-) -> (
-	is_completed: bool,
-) {
-	for &bar, i in sort.vals {
-		bar.rect.start = eval(bar.rect)
-		bar.rect.end = bubble_sort_fin_rect(sort.vals[:], i)
-		bar.rect.t = 0
-		bar.rect.dur = BUBBLE2_DUR[state]
-	}
-	sort.step_time -= sort.step_dur
-	sort.step_dur = BUBBLE2_DUR[state] // dur
-	algo.state = state
-	// bubble_sort_start(algo)
-	// bubble_sort_dur(algo, algo.step_dur, algo.step_dur, algo.step_dur, algo.step_dur)
-	// bubble_sort_t(algo, 0, 0, 0, 0)
-	tmp := sort.step_time < sort.step_dur
-	sort.step_time -= sort.dt * (1 + sort.speed)
-	return tmp
 }
 // returns the next state
 bubble_sort_begin_next_state :: proc(sort: ^Sort, algo: ^BubbleSort2) {
@@ -272,9 +362,11 @@ bubble_sort_begin_next_state :: proc(sort: ^Sort, algo: ^BubbleSort2) {
 		algo.next_state = .Finish
 		return
 	case .Finish:
+		div := f32(len(sort.vals) - 1)
+		div = div != 0 ? div : 1
 		for &bar, i in sort.vals {
 			bar.rect.dur = BUBBLE2_DUR[algo.state] / 2
-			bar.rect.t -= f32(i) / f32(len(sort.vals))
+			bar.rect.t -= f32(i) / div
 		}
 		algo.next_state = .Reset
 		return
@@ -286,3 +378,5 @@ bubble_sort_begin_next_state :: proc(sort: ^Sort, algo: ^BubbleSort2) {
 		unreachable()
 	}
 }
+// mimick timing.
+//

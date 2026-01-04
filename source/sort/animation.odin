@@ -30,7 +30,20 @@ retarget :: proc(val: ^Animated($T), target: T, type: InterpolationType, dur: f3
 	}
 	return val^
 }
-
+track_timing :: proc(target: ^Animated($T), tracker: ^Animated($U)) {
+	tracker.type = target.type
+	tracker.t = target.t
+	tracker.dur = target.dur
+}
+go_after :: proc(dst: ^Animated($T), src: ^Animated(T)) {
+	dst^ = {
+		type  = src.type,
+		t     = src.t,
+		dur   = src.dur,
+		start = dst.start,
+		end   = src.end,
+	}
+}
 interp_rect :: proc(
 	start: rl.Rectangle,
 	end: rl.Rectangle,
@@ -48,10 +61,10 @@ interp_rect :: proc(
 interp_color :: proc(start: rl.Color, end: rl.Color, t: f32, type: InterpolationType) -> rl.Color {
 	// t_inter := interp01(t, type)
 	return {
-		u8(interp(f32(start.r), f32(start.r), t, type)),
-		u8(interp(f32(start.g), f32(start.g), t, type)),
-		u8(interp(f32(start.b), f32(start.b), t, type)),
-		u8(interp(f32(start.a), f32(start.a), t, type)),
+		u8(interp(f32(start.r), f32(end.r), t, type)),
+		u8(interp(f32(start.g), f32(end.g), t, type)),
+		u8(interp(f32(start.b), f32(end.b), t, type)),
+		u8(interp(f32(start.a), f32(end.a), t, type)),
 	}
 }
 interp_values_array :: proc(
@@ -63,11 +76,11 @@ interp_values_array :: proc(
 	t_inter := interp01(t, type)
 	return start * (1 - t_inter) + end * t_inter
 }
-interp_values :: proc(start: f32, end: f32, t: f32, type: InterpolationType = .Linear) -> f32 {
+interp_values :: proc(start: f32, end: f32, t: f32, type: InterpolationType) -> f32 {
 	t_inter := interp01(t, type)
 	return start * (1 - t_inter) + end * t_inter
 }
-interp01 :: proc(t: f32, type: InterpolationType = .Linear) -> f32 {
+interp01 :: proc(t: f32, type: InterpolationType) -> f32 {
 	t := t
 	t = clamp(t, 0, 1)
 	switch type {
@@ -106,5 +119,5 @@ InterpolationType :: enum {
 	Root3,
 	SmoothStep3,
 	SmoothStep5,
-	JumpQuad, 
+	JumpQuad,
 }
