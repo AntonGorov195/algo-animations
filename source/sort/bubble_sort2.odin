@@ -54,8 +54,8 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 		algo.bubble.rect = rect
 		algo.compare.rect = rect
 		algo.end.target.start = {rect.start.x + rect.start.width / 2, rect.start.y}
-		algo.window.rect = sort.vals[len(sort.vals) - 1].rect
-
+		algo.window.start = len(sort.vals)
+		algo.window.end = len(sort.vals)
 		algo.bar_frame = exd({0, 0, 1, 1}, -0.1)
 		bubble_sort_begin_next_state(sort, algo)
 		return false
@@ -63,6 +63,7 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 
 	defer {
 		advance_sort(sort)
+		advance_window(sort, &algo.window)
 		advance_cursor(sort, &algo.end)
 		advance_highlight_bar(sort, &algo.bubble)
 		advance_highlight_bar(sort, &algo.compare)
@@ -74,7 +75,10 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 	b := &algo.bubble
 	c := &algo.compare
 	e := &algo.end
-	// win := &algo.window
+	win := &algo.window
+	if algo.state != .Initialize {
+		win.start = e.idx
+	}
 	go_after(&b.rect, &brect)
 	go_after(&c.rect, &crect)
 
@@ -102,6 +106,9 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 		e.height.type = .Quad
 		e.color.dur = BUBBLE2_DUR[.Finish] * 0.2
 		e.color.end = {}
+
+		algo.window.color.type = .SmoothStep3
+		algo.window.color.end = {255, 255, 255, 0}
 	case:
 		for &bar, i in sort.vals {
 			bar.rect.end = bar_rect(sort, i, algo.bar_frame)
@@ -111,7 +118,8 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 		b.extend.type = .SmoothStep3
 		b.extend.end = [4]f32{HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD * 0.9, HIGHLIGHT_EXD}
 		b.color.type = .SmoothStep3
-		b.color.end = rl.RED
+		algo.bubble.color.end = rl.RED
+
 		c.extend.type = .SmoothStep3
 		c.extend.end = [4]f32{HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD * 0.9, HIGHLIGHT_EXD}
 		c.color.type = .SmoothStep3
@@ -126,6 +134,12 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 		e.width.end = 0.05
 		e.color.type = .SmoothStep3
 		e.color.end = rl.RED
+
+		algo.window.rect.end = window_rect(sort, algo.window, algo.bar_frame, true)
+		algo.window.extend.type = .SmoothStep3
+		algo.window.extend.end = [4]f32{HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD * 0.9, HIGHLIGHT_EXD}
+		algo.window.color.type = .SmoothStep3
+		algo.window.color.end = {255, 255, 255, 127}
 	}
 
 	if sort.step_time >= sort.step_dur {
@@ -139,6 +153,7 @@ process_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) -> (is_completed: 
 }
 draw_bubble_sort2 :: proc(sort: ^Sort, algo: ^BubbleSort2) {
 	push_rect_matrix(sort.frame)
+	rl.DrawRectangleRec(exd(eval(algo.window.rect), eval(algo.window.extend)), eval(algo.window.color))
 	rl.DrawRectangleRec(
 		exd(eval(algo.compare.rect), eval(algo.compare.extend)),
 		eval(algo.compare.color),
@@ -238,6 +253,7 @@ bubble_sort_begin_next_state :: proc(sort: ^Sort, algo: ^BubbleSort2) {
 
 	highlight_reset(&algo.bubble, BUBBLE2_DUR[algo.state])
 	highlight_reset(&algo.compare, BUBBLE2_DUR[algo.state])
+	window_reset(&algo.window, BUBBLE2_DUR[algo.state])
 	cursor_reset(&algo.end, BUBBLE2_DUR[algo.state])
 
 	curr := &algo.bubble.idx
@@ -317,69 +333,3 @@ bubble_sort_begin_next_state :: proc(sort: ^Sort, algo: ^BubbleSort2) {
 		unreachable()
 	}
 }
-
-
-// mimick timing.
-// Apply :: struct($T: typeid) {
-// 	val: T,
-// }
-// Inherit :: struct {}
-// Retain :: struct {}
-// AnimationApplyType :: union($T: typeid) {
-// 	Retain,
-// 	Inherit,
-// 	Apply(T),
-// }
-// AnimationApply :: struct($T: typeid) {
-// 	type:  AnimationApplyType(InterpolationType),
-// 	t:     AnimationApplyType(f32),
-// 	dur:   AnimationApplyType(f32),
-// 	start: AnimationApplyType(T),
-// 	end:   AnimationApplyType(T),
-// }
-
-// anim_apply_inherit :: proc(dst: ^Animated($T), src: AnimationApply(T), parent: ^Animated(T)) {
-// 	src := src
-// 	if src.type == nil {
-// 		src.type = Inherit{}
-// 	}
-// 	if src.t == nil {
-// 		src.t = Inherit{}
-// 	}
-// 	if src.dur == nil {
-// 		src.dur = Inherit{}
-// 	}
-// 	if src.start == nil {
-// 		src.start = Inherit{}
-// 	}
-// 	if src.end == nil {
-// 		src.end = Inherit{}
-// 	}
-// 	anim_apply(dst, src, parent)
-// }
-// anim_apply :: proc(dst: ^Animated($T), src: AnimationApply(T), parent: ^Animated(T)) {
-// 	if dst == nil {
-// 		return
-// 	}
-// 	anim_apply_type(&dst.type, src.type, parent != nil ? &parent.type : nil)
-// 	anim_apply_type(&dst.t, src.t, parent != nil ? &parent.t : nil)
-// 	anim_apply_type(&dst.dur, src.dur, parent != nil ? &parent.dur : nil)
-// 	anim_apply_type(&dst.start, src.start, parent != nil ? &parent.start : nil)
-// 	anim_apply_type(&dst.end, src.end, parent != nil ? &parent.end : nil)
-// }
-// anim_apply_type :: proc(dst: ^$T, src: AnimationApplyType(T), parent: ^T) {
-// 	assert(dst != nil)
-// 	switch val in src {
-// 	case Inherit:
-// 		if parent != nil {
-// 			dst^ = parent^
-// 		}
-// 	case Retain:
-// 		dst^ = dst^
-// 	case Apply(T):
-// 		dst^ = val.val
-// 	case nil:
-// 		// similar to retain
-// 		return
-// 	}
-// }

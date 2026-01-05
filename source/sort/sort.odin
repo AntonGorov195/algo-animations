@@ -10,14 +10,14 @@ Algo :: union {
 	QuickSort,
 }
 Window :: struct {
+	start, end: int,
 	extend:     Animated([4]f32), // padding
 	rect:       Animated(rl.Rectangle),
 	color:      Animated(rl.Color),
-	start, end: int,
 }
 HighlightedBar :: struct {
-	extend: Animated([4]f32), // padding
 	idx:    int,
+	extend: Animated([4]f32), // padding
 	rect:   Animated(rl.Rectangle),
 	color:  Animated(rl.Color),
 }
@@ -141,6 +141,7 @@ window_rect :: proc(
 		for bar in sort.vals[window.start:window.end] {
 			h = max(h, bar.height)
 		}
+		h *= rect.height 
 	}
 	y: f32 = rect.height - h + rect.y
 	return {x, y, w, h}
@@ -213,6 +214,12 @@ advance_cursor :: proc(sort: ^Sort, cursor: ^Cursor) {
 	cursor.width.t += dt / cursor.width.dur
 	cursor.height.t += dt / cursor.height.dur
 }
+advance_window :: proc(sort: ^Sort, window: ^Window) {
+	dt := sort.dt * (1 + sort.speed)
+	window.rect.t += dt / window.rect.dur
+	window.extend.t += dt / window.extend.dur
+	window.color.t += dt / window.color.dur
+}
 advance_sort :: proc(sort: ^Sort) {
 	dt := sort.dt * (1 + sort.speed)
 	sort.step_time += dt
@@ -220,10 +227,7 @@ advance_sort :: proc(sort: ^Sort) {
 		bar.rect.t += dt / bar.rect.dur
 	}
 }
-cursor_point_at :: proc(
-	sort: ^Sort,
-	cursor: ^Cursor,
-) {
+cursor_point_at :: proc(sort: ^Sort, cursor: ^Cursor) {
 	target := sort.vals[cursor.idx].rect
 	cursor.target.end.x = target.end.x + target.end.width / 2
 	cursor.target.end.y = target.end.y + target.end.height
@@ -278,4 +282,17 @@ cursor_reset :: proc(c: ^Cursor, dur: f32) {
 	c.target.dur = dur
 	c.width.dur = dur
 	c.height.dur = dur
+}
+window_reset :: proc(window: ^Window, dur: f32) {
+	window.extend.start = eval(window.extend)
+	window.rect.start = eval(window.rect)
+	window.color.start = eval(window.color)
+
+	window.extend.t = 0
+	window.rect.t = 0
+	window.color.t = 0
+
+	window.extend.dur = dur
+	window.rect.dur = dur
+	window.color.dur = dur
 }
