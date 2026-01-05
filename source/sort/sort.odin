@@ -291,3 +291,8 @@ window_reset :: proc(window: ^Window, dur: f32) {
 	window.rect.dur = dur
 	window.color.dur = dur
 }
+draw_bars :: proc(bars: []BarValue) {
+	for bar, i in bars {
+		rl.DrawRectangleRec(eval(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
+	}
+}

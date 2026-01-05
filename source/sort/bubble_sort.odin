@@ -87,7 +87,7 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 		for &bar, i in sort.vals {
 			bar.rect.start = bar_rect(sort, i, algo.bar_frame)
 			peak := bar.rect.start
-			peak.y -= 0.2
+			peak.y -= 0.1
 			bar.rect.end = peak
 			bar.rect.type = .JumpQuad
 		}

@@ -29,24 +29,6 @@ process :: proc() {
 	if g.input.start_bubble2_sort {
 		g.sorts[0].algo = sort.BubbleSort{}
 	}
-	// if g.input.start_quick_sort {
-	// 	if len(g.main_sort.vals) > 0 {
-	// 		DUR :: 0.1
-	// 		g.is_sorting = true
-	// 		for &bar, _ in g.main_sort.vals {
-	// 			current := sort.eval(bar.rect)
-	// 			bar.rect.start = current
-	// 			bar.rect.dur = DUR
-	// 			bar.rect.t = 0
-	// 			bar.rect.type = .SmoothStep3
-	// 		}
-	// 		// queue animation for initializing the insertion sort display.
-	// 		algo := sort.QuickSort {
-	// 			step_dur = sort.quick_sort_state_dur[.Initialize],
-	// 		}
-	// 		g.main_sort.algo = algo
-	// 	}
-	// }
 	for &s in g.sorts {
 		for _ in 0 ..< 10_000 {
 			if sort.process_sort(&s) {
