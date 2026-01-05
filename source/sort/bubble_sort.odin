@@ -102,10 +102,10 @@ bubble_sort_change_state :: proc(
 	return tmp
 }
 process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bool) {
-	MOVE_HEAD_DUR :: 0.1
-	SWAP_DUR :: 0.1
-	COMPARE_DUR :: 0.1
-	MOVE_NEXT_DUR :: 0.1
+	MOVE_HEAD_DUR :: 0.12
+	SWAP_DUR :: 0.12
+	COMPARE_DUR :: 0.12
+	MOVE_NEXT_DUR :: 0.12
 	defer {
 		dt := sort.dt * (1 + sort.speed)
 		algo.step_time += dt

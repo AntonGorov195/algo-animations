@@ -13,60 +13,97 @@ process :: proc() {
 		dev_cmd()
 	}
 
-	g.main_sort.dt = g.input.dt
+	for &s in g.sorts {
+		s.dt = g.input.dt
+	}
+	// g.main_sort.dt = g.input.dt
 	if g.input.randomize {
-		g.main_sort.algo = nil
-		rand.shuffle(g.main_sort.vals[:])
-		for &bar, _ in g.main_sort.vals {
-			current := sort.eval(bar.rect)
-			bar.rect.start = current
-			bar.rect.t = 0
-			bar.rect.type = .SmoothStep5
-			bar.rect.dur = 1
+		seed := rand.uint64()
+		for &s in g.sorts {
+			rand.reset(seed)
+			rand.shuffle(s.vals[:])
+			sort.reset_sort(&s)
 		}
 	}
 
-	if g.input.start_insertion_sort {
-		if len(g.main_sort.vals) > 0 {
-			DUR :: 0.1
-			g.is_sorting = true
-			for &bar, _ in g.main_sort.vals {
-				current := sort.eval(bar.rect)
-				bar.rect.start = current
-				bar.rect.dur = DUR
-				bar.rect.t = 0
-				bar.rect.type = .SmoothStep3
-			}
-			// queue animation for initializing the insertion sort display.
-			algo := sort.InsersionSort {
-				step_dur = DUR,
-				assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
-				head_cursor = {
-					dur = DUR,
-					start = g.main_sort.vals[0].rect.start.x +
-					g.main_sort.vals[0].rect.start.width / 2,
-					type = g.main_sort.vals[0].rect.type,
-				},
-				insert_rect = {
-					dur = DUR,
-					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
-					type = g.main_sort.vals[0].rect.type,
-				},
-				compare_rect = {
-					dur = DUR,
-					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
-					type = g.main_sort.vals[0].rect.type,
-				},
-			}
+	// if g.input.start_insertion_sort {
+	// 	if len(g.main_sort.vals) > 0 {
+	// 		DUR :: 0.1
+	// 		g.is_sorting = true
+	// 		for &bar, _ in g.main_sort.vals {
+	// 			current := sort.eval(bar.rect)
+	// 			bar.rect.start = current
+	// 			bar.rect.dur = DUR
+	// 			bar.rect.t = 0
+	// 			bar.rect.type = .SmoothStep3
+	// 		}
+	// 		// queue animation for initializing the insertion sort display.
+	// 		algo := sort.InsersionSort {
+	// 			step_dur = DUR,
+	// 			assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
+	// 			head_cursor = {
+	// 				dur = DUR,
+	// 				start = g.main_sort.vals[0].rect.start.x +
+	// 				g.main_sort.vals[0].rect.start.width / 2,
+	// 				type = g.main_sort.vals[0].rect.type,
+	// 			},
+	// 			insert_rect = {
+	// 				dur = DUR,
+	// 				start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
+	// 				type = g.main_sort.vals[0].rect.type,
+	// 			},
+	// 			compare_rect = {
+	// 				dur = DUR,
+	// 				start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
+	// 				type = g.main_sort.vals[0].rect.type,
+	// 			},
+	// 		}
 
-			g.main_sort.algo = algo
-		}
-	}
-	if g.input.start_bubble_sort {
-		if len(g.main_sort.vals) > 0 {
+	// 		g.main_sort.algo = algo
+	// 	}
+	// }
+	// if g.input.start_bubble_sort {
+	// 	if len(g.main_sort.vals) > 0 {
+	// 		DUR :: 0.1
+	// 		g.is_sorting = true
+	// 		for &bar, _ in g.main_sort.vals {
+	// 			current := sort.eval(bar.rect)
+	// 			bar.rect.start = current
+	// 			bar.rect.dur = DUR
+	// 			bar.rect.t = 0
+	// 			bar.rect.type = .SmoothStep3
+	// 		}
+	// 		// queue animation for initializing the insertion sort display.
+	// 		algo := sort.BubbleSort {
+	// 			step_dur = DUR,
+	// 			assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
+	// 			end_cursor = {
+	// 				dur = DUR,
+	// 				start = g.main_sort.vals[0].rect.start.x +
+	// 				g.main_sort.vals[0].rect.start.width / 2,
+	// 				type = g.main_sort.vals[0].rect.type,
+	// 			},
+	// 			bubble_rect = {
+	// 				dur = DUR,
+	// 				start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
+	// 				type = g.main_sort.vals[0].rect.type,
+	// 			},
+	// 			compare_rect = {
+	// 				dur = DUR,
+	// 				start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
+	// 				type = g.main_sort.vals[0].rect.type,
+	// 			},
+	// 		}
+
+	// 		g.main_sort.algo = algo
+	// 	}
+	// }
+	if g.input.start_bubble2_sort {
+		g.sorts[0].algo = sort.BubbleSort2{}
+		{
 			DUR :: 0.1
 			g.is_sorting = true
-			for &bar, _ in g.main_sort.vals {
+			for &bar, _ in g.sorts[1].vals {
 				current := sort.eval(bar.rect)
 				bar.rect.start = current
 				bar.rect.dur = DUR
@@ -79,49 +116,48 @@ process :: proc() {
 				assist_opacity = {dur = DUR, end = 1, type = .SmoothStep3},
 				end_cursor = {
 					dur = DUR,
-					start = g.main_sort.vals[0].rect.start.x +
-					g.main_sort.vals[0].rect.start.width / 2,
-					type = g.main_sort.vals[0].rect.type,
+					start = g.sorts[1].vals[0].rect.start.x +
+					g.sorts[1].vals[0].rect.start.width / 2,
+					type = g.sorts[1].vals[0].rect.type,
 				},
 				bubble_rect = {
 					dur = DUR,
-					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
-					type = g.main_sort.vals[0].rect.type,
+					start = exd(sort.eval(g.sorts[1].vals[0].rect), 0),
+					type = g.sorts[1].vals[0].rect.type,
 				},
 				compare_rect = {
 					dur = DUR,
-					start = exd(sort.eval(g.main_sort.vals[0].rect), 0),
-					type = g.main_sort.vals[0].rect.type,
+					start = exd(sort.eval(g.sorts[1].vals[0].rect), 0),
+					type = g.sorts[1].vals[0].rect.type,
 				},
 			}
-
-			g.main_sort.algo = algo
+			g.sorts[1].algo = algo
 		}
+		// g.main_sort.algo = sort.BubbleSort2{}
 	}
-	if g.input.start_bubble2_sort {
-		g.main_sort.algo = sort.BubbleSort2{}
-	}
-	if g.input.start_quick_sort {
-		if len(g.main_sort.vals) > 0 {
-			DUR :: 0.1
-			g.is_sorting = true
-			for &bar, _ in g.main_sort.vals {
-				current := sort.eval(bar.rect)
-				bar.rect.start = current
-				bar.rect.dur = DUR
-				bar.rect.t = 0
-				bar.rect.type = .SmoothStep3
+	// if g.input.start_quick_sort {
+	// 	if len(g.main_sort.vals) > 0 {
+	// 		DUR :: 0.1
+	// 		g.is_sorting = true
+	// 		for &bar, _ in g.main_sort.vals {
+	// 			current := sort.eval(bar.rect)
+	// 			bar.rect.start = current
+	// 			bar.rect.dur = DUR
+	// 			bar.rect.t = 0
+	// 			bar.rect.type = .SmoothStep3
+	// 		}
+	// 		// queue animation for initializing the insertion sort display.
+	// 		algo := sort.QuickSort {
+	// 			step_dur = sort.quick_sort_state_dur[.Initialize],
+	// 		}
+	// 		g.main_sort.algo = algo
+	// 	}
+	// }
+	for &s in g.sorts {
+		for _ in 0 ..< 10_000 {
+			if sort.process_sort(&s) {
+				break
 			}
-			// queue animation for initializing the insertion sort display.
-			algo := sort.QuickSort {
-				step_dur = sort.quick_sort_state_dur[.Initialize],
-			}
-			g.main_sort.algo = algo
-		}
-	}
-	for _ in 0 ..< 10_000 {
-		if sort.process_sort(&g.main_sort) {
-			break
 		}
 	}
 	clean_sound_pool()
