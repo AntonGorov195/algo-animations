@@ -23,11 +23,11 @@ HighlightedBar :: struct {
 }
 Cursor :: struct {
 	idx:    int,
-	margin: Animated(f32), // margin between the target and tip
-	color:  Animated(rl.Color),
 	target: Animated([2]f32),
 	width:  Animated(f32),
 	height: Animated(f32),
+	margin: Animated(f32), // margin between the target and tip
+	color:  Animated(rl.Color),
 }
 Sort :: struct {
 	dt:        f32, // process delta time, before speed.
@@ -52,7 +52,7 @@ COMPARE_COLOR :: rl.ORANGE
 SELECTED_COLOR :: rl.RED
 HIGHLIGHT_EXD :: 0.008
 WINDOW_EXD :: 0.01
-DEFAULT_STEP_DUR :: 0.3
+DEFAULT_STEP_DUR :: 0.2
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 	assert(sort != nil)
@@ -207,6 +207,7 @@ advance_highlight_bar :: proc(sort: ^Sort, highlight: ^HighlightedBar) {
 }
 advance_cursor :: proc(sort: ^Sort, cursor: ^Cursor) {
 	dt := sort.dt * (1 + sort.speed)
+	cursor.margin.t += dt / cursor.margin.dur
 	cursor.color.t += dt / cursor.color.dur
 	cursor.target.t += dt / cursor.target.dur
 	cursor.width.t += dt / cursor.width.dur
@@ -219,12 +220,9 @@ advance_sort :: proc(sort: ^Sort) {
 		bar.rect.t += dt / bar.rect.dur
 	}
 }
-cursor_with_size_and_color :: proc(
+cursor_point_at :: proc(
 	sort: ^Sort,
 	cursor: ^Cursor,
-	width: f32,
-	height: f32,
-	color: rl.Color,
 ) {
 	target := sort.vals[cursor.idx].rect
 	cursor.target.end.x = target.end.x + target.end.width / 2
@@ -232,13 +230,6 @@ cursor_with_size_and_color :: proc(
 	cursor.target.t = target.t
 	cursor.target.dur = target.dur
 	cursor.target.type = target.type
-}
-cursor_bar :: proc(sort: ^Sort, cursor: ^Cursor) {
-	cursor_with_size_and_color(sort, cursor, cursor.width.end, cursor.height.end, cursor.color.end)
-}
-cursor :: proc {
-	cursor_bar,
-	cursor_with_size_and_color,
 }
 highlight_with_color :: proc(sort: ^Sort, highlight: ^HighlightedBar, color: rl.Color) {
 	target := sort.vals[highlight.idx].rect

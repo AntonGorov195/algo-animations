@@ -30,19 +30,17 @@ retarget :: proc(val: ^Animated($T), target: T, type: InterpolationType, dur: f3
 	}
 	return val^
 }
-track_timing :: proc(target: ^Animated($T), tracker: ^Animated($U)) {
-	tracker.type = target.type
-	tracker.t = target.t
-	tracker.dur = target.dur
+track_timing :: proc(dst: ^Animated($T), src: ^Animated($U)) {
+	dst.type = src.type
+	dst.t = src.t
+	dst.dur = src.dur
 }
 go_after :: proc(dst: ^Animated($T), src: ^Animated(T)) {
-	dst^ = {
-		type  = src.type,
-		t     = src.t,
-		dur   = src.dur,
-		start = dst.start,
-		end   = src.end,
-	}
+	dst.type = src.type
+	dst.t = src.t
+	dst.dur = src.dur
+	// dst.start = src.start
+	dst.end = src.end
 }
 interp_rect :: proc(
 	start: rl.Rectangle,
