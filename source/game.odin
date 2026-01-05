@@ -74,31 +74,8 @@ start :: proc() {
 	_ = ui_add_font(0)
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
-	// g.main_sort.frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -0)
-	// for i in 0 ..< COUNT {
-	// 	w := sort.calc_bar_width(COUNT)
-	// 	x := sort.rect_end_pos_x(COUNT, i)
-	// 	h := f32(i + 1) / COUNT
-	// 	rect := sort.Animated(rl.Rectangle) {
-	// 		start = rl.Rectangle{x, 1 - h, w, h},
-	// 		end   = rl.Rectangle{x, 1 - h, w, h},
-	// 	}
-	// 	bar := sort.BarValue {
-	// 		value      = f32(i),
-	// 		height     = h,
-	// 		rect       = rect,
-	// 		real_place = i,
-	// 	}
-	// 	append(&g.main_sort.vals, bar)
-	// }
-	// s: sort.Sort
-	// s.frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -0)
-
 	append(&g.sorts, create_sort())
-	append(&g.sorts, create_sort())
-
-	g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
-	g.sorts[1].frame = exd(rl.Rectangle{SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
+	g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -10)
 }
 end :: proc() {
 	// Freeing memory will be done in "game_end".

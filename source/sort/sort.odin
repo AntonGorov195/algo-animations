@@ -6,7 +6,6 @@ import "vendor:raylib/rlgl"
 Algo :: union {
 	InsersionSort,
 	BubbleSort,
-	BubbleSort2,
 	QuickSort,
 }
 Window :: struct {
@@ -50,8 +49,8 @@ BAR_GAP :: 0.4 // Proportional to bar width
 PIVOT_COLOR :: rl.BLUE
 COMPARE_COLOR :: rl.ORANGE
 SELECTED_COLOR :: rl.RED
-HIGHLIGHT_EXD :: 0.008
-WINDOW_EXD :: 0.01
+HIGHLIGHT_EXD :: 0.007
+WINDOW_EXD :: 0.015
 DEFAULT_STEP_DUR :: 0.2
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
@@ -74,8 +73,6 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 		return process_insertion_sort(sort, &algo)
 	case BubbleSort:
 		return process_bubble_sort(sort, &algo)
-	case BubbleSort2:
-		return process_bubble_sort2(sort, &algo)
 	case QuickSort:
 		return process_quick_sort(sort, &algo)
 	case:
@@ -94,8 +91,6 @@ draw_sort :: proc(sort: ^Sort) {
 		draw_insertion_sort(sort, &algo)
 	case BubbleSort:
 		draw_bubble_sort(sort, &algo)
-	case BubbleSort2:
-		draw_bubble_sort2(sort, &algo)
 	case QuickSort:
 		draw_quick_sort(sort, &algo)
 	case:
