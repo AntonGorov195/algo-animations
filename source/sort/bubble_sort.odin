@@ -27,14 +27,14 @@ BubbleSort :: struct {
 @(rodata)
 BUBBLE_DURATIONS: [BubbleSortState]f32 = {
 	.Uninitialized = 0,
-	.Initialize    = DEFAULT_STEP_DUR,
+	.Initialize    = DEFAULT_STEP_DUR * 10,
 	.Start         = DEFAULT_STEP_DUR,
 	.Compare       = 0, // no animation for comparing
 	.Swap          = DEFAULT_STEP_DUR,
 	.MoveCompare   = DEFAULT_STEP_DUR,
 	.MoveNext      = DEFAULT_STEP_DUR,
 	.EndBubble     = DEFAULT_STEP_DUR,
-	.Finish        = DEFAULT_STEP_DUR * 10,
+	.Finish        = DEFAULT_STEP_DUR * 8,
 	.Reset         = 0,
 }
 // Look at the demo to understand this
@@ -50,14 +50,14 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 		sort.step_dur = 0
 		sort.step_time = 0
 		algo.next_state = .Initialize
+		algo.bar_frame = exd({0, 0, 1, 1}, -0.1)
+		bubble_sort_begin_next_state(sort, algo)
 		rect := sort.vals[0].rect
 		algo.bubble.rect = rect
 		algo.compare.rect = rect
 		algo.end.target.start = {rect.start.x + rect.start.width / 2, rect.start.y}
 		algo.window.start = len(sort.vals)
 		algo.window.end = len(sort.vals)
-		algo.bar_frame = exd({0, 0, 1, 1}, -0.1)
-		bubble_sort_begin_next_state(sort, algo)
 		return false
 	}
 
@@ -77,8 +77,9 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 	e := &algo.end
 	win := &algo.window
 	if algo.state != .Initialize {
-		win.start = e.idx
+		win.start = e.idx + 1
 	}
+	// 	win.rect.start = exd(r, -r.height / 2, -r.width / 2, -r.height / 2, -r.width / 2)
 	go_after(&b.rect, &brect)
 	go_after(&c.rect, &crect)
 
@@ -107,39 +108,52 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 		e.color.dur = BUBBLE_DURATIONS[.Finish] * 0.2
 		e.color.end = {}
 
-		algo.window.color.type = .SmoothStep3
+		algo.window.start = 0
+		algo.window.rect.end = window_rect(sort, algo.window, algo.bar_frame, true)
+		algo.window.rect.dur = BUBBLE_DURATIONS[.Finish]  * 0.1
+		algo.window.extend.type = DEFAULT_INTERPOLATION_TYPE
+		algo.window.extend.end = [4]f32{WINDOW_EXD, WINDOW_EXD, WINDOW_EXD, WINDOW_EXD}
+		algo.window.color.type = DEFAULT_INTERPOLATION_TYPE
+		algo.window.color.dur = BUBBLE_DURATIONS[.Finish] 
 		algo.window.color.end = {255, 255, 255, 0}
 	case:
 		for &bar, i in sort.vals {
 			bar.rect.end = bar_rect(sort, i, algo.bar_frame)
-			bar.rect.type = .SmoothStep3
+			bar.rect.type = DEFAULT_INTERPOLATION_TYPE
 		}
 
-		b.extend.type = .SmoothStep3
+		b.extend.type = DEFAULT_INTERPOLATION_TYPE
 		b.extend.end = [4]f32{HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD}
-		b.color.type = .SmoothStep3
+		b.color.type = DEFAULT_INTERPOLATION_TYPE
 		algo.bubble.color.end = rl.RED
 
-		c.extend.type = .SmoothStep3
+		c.extend.type = DEFAULT_INTERPOLATION_TYPE
 		c.extend.end = [4]f32{HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD, HIGHLIGHT_EXD}
-		c.color.type = .SmoothStep3
+		c.color.type = DEFAULT_INTERPOLATION_TYPE
 		c.color.end = rl.ORANGE
 
 		cursor_point_at(sort, &algo.end)
-		e.margin.type = .SmoothStep3
+		e.margin.type = DEFAULT_INTERPOLATION_TYPE
 		e.margin.end = 0.02
-		e.height.type = .SmoothStep3
+		e.height.type = DEFAULT_INTERPOLATION_TYPE
 		e.height.end = 0.07
-		e.width.type = .SmoothStep3
+		e.width.type = DEFAULT_INTERPOLATION_TYPE
 		e.width.end = 0.05
-		e.color.type = .SmoothStep3
+		e.color.type = DEFAULT_INTERPOLATION_TYPE
 		e.color.end = rl.RED
 
-		algo.window.rect.end = window_rect(sort, algo.window, algo.bar_frame, true)
-		algo.window.extend.type = .SmoothStep3
-		algo.window.extend.end =
-			[4]f32{WINDOW_EXD, WINDOW_EXD, WINDOW_EXD, WINDOW_EXD}
-		algo.window.color.type = .SmoothStep3
+		if window_len(algo.window) == 0 {
+			r := bar_rect(sort, win.end - 1, algo.bar_frame)
+			algo.window.rect = sort.vals[win.end - 1].rect
+			algo.window.rect.end = r
+			algo.window.extend.type = DEFAULT_INTERPOLATION_TYPE
+			algo.window.extend.end = [4]f32{}
+		} else {
+			algo.window.rect.end = window_rect(sort, algo.window, algo.bar_frame, true)
+			algo.window.extend.type = DEFAULT_INTERPOLATION_TYPE
+			algo.window.extend.end = [4]f32{WINDOW_EXD, WINDOW_EXD, WINDOW_EXD, WINDOW_EXD}
+		}
+		algo.window.color.type = DEFAULT_INTERPOLATION_TYPE
 		algo.window.color.end = {255, 255, 255, 127}
 	}
 
@@ -247,14 +261,10 @@ bubble_sort_demo :: proc(values: []f32) {
 // returns the next state
 bubble_sort_begin_next_state :: proc(sort: ^Sort, algo: ^BubbleSort) {
 	algo.state = algo.next_state
-	for &bar in sort.vals {
-		bar.rect.start = eval(bar.rect)
-		bar.rect.t = 0
-		bar.rect.dur = BUBBLE_DURATIONS[algo.state]
-	}
 	sort.step_time -= sort.step_dur
 	sort.step_dur = BUBBLE_DURATIONS[algo.state]
 
+	reset_bars(sort, BUBBLE_DURATIONS[algo.state])
 	highlight_reset(&algo.bubble, BUBBLE_DURATIONS[algo.state])
 	highlight_reset(&algo.compare, BUBBLE_DURATIONS[algo.state])
 	window_reset(&algo.window, BUBBLE_DURATIONS[algo.state])
@@ -335,5 +345,12 @@ bubble_sort_begin_next_state :: proc(sort: ^Sort, algo: ^BubbleSort) {
 		fallthrough
 	case:
 		unreachable()
+	}
+}
+reset_bars :: proc(sort: ^Sort, dur: f32) {
+	for &bar in sort.vals {
+		bar.rect.start = eval(bar.rect)
+		bar.rect.t = 0
+		bar.rect.dur = dur
 	}
 }

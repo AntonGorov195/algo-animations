@@ -7,17 +7,31 @@ InsersionSortState :: enum {
 	Uninitialized,
 	Initialize,
 	Start,
+	MoveHead,
 	Compare,
 	Swap,
+	Finish,
+	Reset,
 }
 InsersionSort :: struct {
 	head:            Cursor,
 	insert, compare: HighlightedBar,
+	hidden:          Window, // after head
 	state:           InsersionSortState,
 	next_state:      InsersionSortState,
 	bar_frame:       rl.Rectangle,
 }
-
+@(rodata)
+INSERTION_DURATIONS: [InsersionSortState]f32 = {
+	.Uninitialized = 0,
+	.Initialize    = DEFAULT_STEP_DUR,
+	.Start         = DEFAULT_STEP_DUR,
+	.MoveHead      = DEFAULT_STEP_DUR,
+	.Compare       = 0,
+	.Swap          = DEFAULT_STEP_DUR,
+	.Finish        = DEFAULT_STEP_DUR,
+	.Reset         = 0,
+}
 // insertion_sort_target :: proc(
 // 	algo: ^InsersionSort,
 // 	assist_opacity: f32,
@@ -207,12 +221,78 @@ InsersionSort :: struct {
 // 		exd(compare_rect, 0.01),
 // 	)
 // }
-process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> bool {
+process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_completed: bool) {
+	is_completed = true
+
+	if len(sort.vals) < 1 {
+		reset_sort(sort)
+		return true
+	}
+
+	if algo.state == .Uninitialized {
+		sort.step_dur = 0
+		sort.step_time = 0
+		algo.bar_frame = exd({0, 0, 1, 1}, -0.1)
+		algo.next_state = .Initialize
+		insertion_sort_begin_next_state(sort, algo)
+		// set things up here
+		return false
+	}
+
+	defer {
+		advance_sort(sort)
+		advance_cursor(sort, &algo.head)
+		advance_highlight_bar(sort, &algo.insert)
+		advance_highlight_bar(sort, &algo.compare)
+	}
+
+	if sort.step_time >= sort.step_dur {
+		insertion_sort_begin_next_state(sort, algo)
+		tmp := sort.step_time < sort.step_dur
+		// the step time will be updated in defer
+		sort.step_time -= sort.dt * (1 + sort.speed)
+		return tmp
+	}
 	return true
 }
 draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
-
+	push_rect_matrix(sort.frame)
+	draw_bars(sort.vals[:])
+	pop_rect_matrix()
 }
+insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsersionSort) {
+	algo.state = algo.next_state
+	sort.step_time -= sort.step_dur
+	sort.step_dur = INSERTION_DURATIONS[algo.state]
+
+	reset_bars(sort, INSERTION_DURATIONS[algo.state])
+	cursor_reset(&algo.head, INSERTION_DURATIONS[algo.state])
+	highlight_reset(&algo.insert, INSERTION_DURATIONS[algo.state])
+	highlight_reset(&algo.compare, INSERTION_DURATIONS[algo.state])
+	window_reset(&algo.hidden, INSERTION_DURATIONS[algo.state])
+
+	head := &algo.head
+	insert := &algo.insert
+	compare := &algo.compare
+	switch algo.state {
+	case .Initialize:
+		algo.next_state = .Start
+	case .Start:
+		head.idx = 1
+		insert.idx = 1
+		compare.idx = 1
+	case .MoveHead:
+	case .Compare:
+	case .Swap:
+	case .Finish:
+	case .Reset:
+		reset_sort(sort)
+	case .Uninitialized:
+		fallthrough
+	case:
+	}
+}
+// --- DEMO ---
 insertion_sort_demo :: proc(values: []f32) {
 	// Initialize
 	head, insert, compare: int

@@ -25,9 +25,6 @@ input :: proc() {
 	if rl.IsKeyPressed(.B) {
 		input.start_bubble_sort = true
 	}
-	if rl.IsKeyPressed(.TWO) {
-		input.start_bubble2_sort = true
-	}
 	if rl.IsKeyPressed(.Q) {
 		input.start_quick_sort = true
 	}

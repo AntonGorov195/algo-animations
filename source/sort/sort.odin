@@ -52,6 +52,7 @@ SELECTED_COLOR :: rl.RED
 HIGHLIGHT_EXD :: 0.007
 WINDOW_EXD :: 0.015
 DEFAULT_STEP_DUR :: 0.2
+DEFAULT_INTERPOLATION_TYPE :: InterpolationType.SmoothStep3
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 	assert(sort != nil)
@@ -65,7 +66,7 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 		}
 		for &bar, i in sort.vals {
 			bar.rect.dur = DEFAULT_STEP_DUR
-			bar.rect.type = .SmoothStep3
+			bar.rect.type = DEFAULT_INTERPOLATION_TYPE
 			bar.rect.end = bar_rect(sort, i, {0, 0, 1, 1})
 		}
 		return true
@@ -136,7 +137,7 @@ window_rect :: proc(
 		for bar in sort.vals[window.start:window.end] {
 			h = max(h, bar.height)
 		}
-		h *= rect.height 
+		h *= rect.height
 	}
 	y: f32 = rect.height - h + rect.y
 	return {x, y, w, h}

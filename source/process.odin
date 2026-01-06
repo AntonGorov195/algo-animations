@@ -26,8 +26,11 @@ process :: proc() {
 		}
 	}
 
-	if g.input.start_bubble2_sort {
+	if g.input.start_bubble_sort {
 		g.sorts[0].algo = sort.BubbleSort{}
+	}
+	if g.input.start_insertion_sort {
+		g.sorts[0].algo = sort.InsersionSort{}
 	}
 	for &s in g.sorts {
 		for _ in 0 ..< 10_000 {
