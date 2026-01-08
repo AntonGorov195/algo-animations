@@ -7,220 +7,39 @@ InsersionSortState :: enum {
 	Uninitialized,
 	Initialize,
 	Start,
-	MoveHead,
 	Compare,
 	Swap,
+	MoveCompare,
+	MoveHead,
 	Finish,
 	Reset,
 }
+InsersionIndices :: struct {
+	head, insert, compare: int,
+}
 InsersionSort :: struct {
-	head:            Cursor,
-	insert, compare: HighlightedBar,
-	hidden:          Window, // after head
-	state:           InsersionSortState,
-	next_state:      InsersionSortState,
-	bar_frame:       rl.Rectangle,
+	// head:                      Cursor,
+	// prev_insert, prev_compare: HighlightedBar,
+	// insert, compare:           HighlightedBar,
+	// hidden:                    Window, // after head
+	using idx:  InsersionIndices,
+	prev:       InsersionIndices,
+	state:      InsersionSortState,
+	next_state: InsersionSortState,
+	bar_frame:  rl.Rectangle,
 }
 @(rodata)
 INSERTION_DURATIONS: [InsersionSortState]f32 = {
 	.Uninitialized = 0,
 	.Initialize    = DEFAULT_STEP_DUR,
 	.Start         = DEFAULT_STEP_DUR,
-	.MoveHead      = DEFAULT_STEP_DUR,
 	.Compare       = 0,
 	.Swap          = DEFAULT_STEP_DUR,
+	.MoveCompare   = DEFAULT_STEP_DUR,
+	.MoveHead      = DEFAULT_STEP_DUR,
 	.Finish        = DEFAULT_STEP_DUR,
 	.Reset         = 0,
 }
-// insertion_sort_target :: proc(
-// 	algo: ^InsersionSort,
-// 	assist_opacity: f32,
-// 	head_cursor: f32,
-// 	insert_rect: rl.Rectangle,
-// 	compare_rect: rl.Rectangle,
-// ) {
-// 	algo.assist_opacity.end = assist_opacity
-// 	algo.head_cursor.end = head_cursor
-// 	algo.insert_rect.end = insert_rect
-// 	algo.compare_rect.end = compare_rect
-// }
-// insertion_sort_dur :: proc(
-// 	algo: ^InsersionSort,
-// 	assist_opacity: f32,
-// 	head_cursor: f32,
-// 	insert_rect: f32,
-// 	compare_rect: f32,
-// ) {
-// 	algo.assist_opacity.dur = assist_opacity
-// 	algo.head_cursor.dur = head_cursor
-// 	algo.insert_rect.dur = insert_rect
-// 	algo.compare_rect.dur = compare_rect
-// }
-// insertion_sort_t :: proc(
-// 	algo: ^InsersionSort,
-// 	assist_opacity: f32,
-// 	head_cursor: f32,
-// 	insert_rect: f32,
-// 	compare_rect: f32,
-// ) {
-// 	algo.assist_opacity.t = assist_opacity
-// 	algo.head_cursor.t = head_cursor
-// 	algo.insert_rect.t = insert_rect
-// 	algo.compare_rect.t = compare_rect
-// }
-// insertion_sort_start :: proc(algo: ^InsersionSort) {
-// 	algo.assist_opacity.start = eval(algo.assist_opacity)
-// 	algo.head_cursor.start = eval(algo.head_cursor)
-// 	algo.insert_rect.start = eval(algo.insert_rect)
-// 	algo.compare_rect.start = eval(algo.compare_rect)
-// }
-// insertion_sort_change_state :: proc(
-// 	sort: ^Sort,
-// 	algo: ^InsersionSort,
-// 	state: InsersionSortState,
-// 	dur: f32,
-// ) -> (
-// 	is_completed: bool,
-// ) {
-// 	for &bar, i in sort.vals {
-// 		bar.rect.start = eval(bar.rect)
-// 		bar.rect.end = insert_sort_fin_rect(sort.vals[:], i)
-// 		bar.rect.t = 0
-// 		bar.rect.dur = dur
-// 	}
-// 	algo.step_time -= algo.step_dur
-// 	algo.step_dur = dur // dur
-// 	algo.state = state
-// 	insertion_sort_start(algo)
-// 	insertion_sort_dur(algo, algo.step_dur, algo.step_dur, algo.step_dur, algo.step_dur)
-// 	insertion_sort_t(algo, 0, 0, 0, 0)
-// 	tmp := algo.step_time < algo.step_dur
-// 	algo.step_time -= sort.dt * (1 + sort.speed)
-// 	return tmp
-// }
-// process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_completed: bool) {
-// 	MOVE_HEAD_DUR :: 0.1
-// 	SWAP_DUR :: 0.1
-// 	COMPARE_DUR :: 0.1
-// 	MOVE_NEXT_DUR :: 0.1
-// 	defer {
-// 		dt := sort.dt * (1 + sort.speed)
-// 		algo.step_time += dt
-// 		for &bar in sort.vals {
-// 			bar.rect.t += dt / bar.rect.dur
-// 		}
-// 		algo.assist_opacity.t += dt / algo.assist_opacity.dur
-// 		algo.head_cursor.t += dt / algo.head_cursor.dur
-// 		algo.insert_rect.t += dt / algo.insert_rect.dur
-// 		algo.compare_rect.t += dt / algo.compare_rect.dur
-// 	}
-// 	for &bar, i in sort.vals {
-// 		bar.rect.end = insert_sort_fin_rect(sort.vals[:], i)
-// 	}
-
-// 	switch algo.state {
-// 	case .Initialization:
-// 		insertion_animate_step(sort, algo, algo.head, algo.insert, algo.compare)
-// 		// init finished
-// 		if algo.step_time > algo.step_dur {
-// 			algo.head += 1
-// 			algo.insert += 1
-// 			if algo.head >= len(sort.vals) {
-// 				reset_sort(sort)
-// 			} else {
-// 				// move on
-// 				return insertion_sort_change_state(sort, algo, .MoveHead, MOVE_HEAD_DUR)
-// 			}
-// 		}
-// 	case .MoveHead:
-// 		// DONE
-// 		// Compare
-// 		insertion_animate_step(sort, algo, algo.head, algo.insert, algo.compare)
-// 		if algo.step_time > algo.step_dur {
-// 			return insertion_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
-// 		}
-// 	case .Swap:
-// 		// MoveNext, MoveHead, Fin
-// 		insertion_animate_step(sort, algo, algo.head, algo.insert - 1, algo.compare + 1)
-// 		if algo.step_time > algo.step_dur {
-// 			if algo.compare <= 0 {
-// 				if algo.head + 1 >= len(sort.vals) {
-// 					reset_sort(sort)
-// 				} else {
-// 					// reached start
-// 					algo.head += 1
-// 					algo.insert = algo.head
-// 					algo.compare = algo.head - 1
-// 					return insertion_sort_change_state(sort, algo, .MoveHead, MOVE_HEAD_DUR)
-// 				}
-// 			} else {
-// 				algo.insert -= 1
-// 				algo.compare -= 1
-// 				return insertion_sort_change_state(sort, algo, .MoveNext, MOVE_NEXT_DUR)
-// 			}
-// 		}
-// 	case .Compare:
-// 		// Swap, MoveHead, Fin
-// 		if algo.step_time > algo.step_dur {
-// 			if sort.vals[algo.compare].value > sort.vals[algo.insert].value {
-// 				slice.swap(sort.vals[:], algo.compare, algo.insert)
-// 				return insertion_sort_change_state(sort, algo, .Swap, SWAP_DUR)
-// 			} else {
-// 				if algo.head + 1 >= len(sort.vals) {
-// 					reset_sort(sort)
-// 				} else {
-// 					// move on
-// 					algo.head += 1
-// 					algo.insert = algo.head
-// 					algo.compare = algo.head - 1
-// 					return insertion_sort_change_state(sort, algo, .MoveHead, MOVE_HEAD_DUR)
-// 				}
-// 			}
-// 		}
-// 	case .MoveNext:
-// 		// Compare
-// 		insertion_animate_step(sort, algo, algo.head, algo.insert, algo.compare)
-// 		if algo.step_time > algo.step_dur {
-// 			return insertion_sort_change_state(sort, algo, .Compare, COMPARE_DUR)
-// 		}
-// 	}
-// 	return true
-// }
-// draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
-// 	push_rect_matrix(sort.frame)
-// 	{ 	// cursor
-// 		CURSOR_WIDTH :: 0.1
-// 		cursor := eval(algo.head_cursor)
-// 		draw_sort_cursor(
-// 			exd(
-// 				{
-// 					cursor - INSERTION_SORT_CURSOR_SIZE / 4,
-// 					1 - INSERTION_SORT_CURSOR_SIZE,
-// 					INSERTION_SORT_CURSOR_SIZE / 2,
-// 					INSERTION_SORT_CURSOR_SIZE,
-// 				},
-// 				-0.000,
-// 			),
-// 			{255, 0, 0, u8(255 * eval(algo.assist_opacity))},
-// 		)
-// 	}
-// 	rl.DrawRectangleRec(eval(algo.compare_rect), rl.ORANGE)
-// 	rl.DrawRectangleRec(eval(algo.insert_rect), rl.RED)
-// 	draw_bars(sort.vals[:])
-// 	pop_rect_matrix()
-// }
-// insertion_animate_step :: proc(sort: ^Sort, algo: ^InsersionSort, head, insert, compare: int) {
-// 	head_rect := insert_sort_fin_rect(sort.vals[:], head)
-// 	insert_rect := insert_sort_fin_rect(sort.vals[:], insert)
-// 	compare_rect := insert_sort_fin_rect(sort.vals[:], compare)
-// 	insertion_sort_target(
-// 		algo,
-// 		1,
-// 		head_rect.x + head_rect.width / 2,
-// 		exd(insert_rect, 0.01),
-// 		exd(compare_rect, 0.01),
-// 	)
-// }
 process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_completed: bool) {
 	is_completed = true
 
@@ -235,30 +54,89 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 		algo.bar_frame = exd({0, 0, 1, 1}, -0.1)
 		algo.next_state = .Initialize
 		insertion_sort_begin_next_state(sort, algo)
-		// set things up here
 		return false
 	}
 
 	defer {
-		advance_sort(sort)
-		advance_cursor(sort, &algo.head)
-		advance_highlight_bar(sort, &algo.insert)
-		advance_highlight_bar(sort, &algo.compare)
 	}
-
+	for &bar, i in sort.vals {
+		bar.rect.end = bar_rect(sort, i, algo.bar_frame)
+	}
 	if sort.step_time >= sort.step_dur {
+		algo.prev = algo.idx
 		insertion_sort_begin_next_state(sort, algo)
-		tmp := sort.step_time < sort.step_dur
-		// the step time will be updated in defer
-		sort.step_time -= sort.dt * (1 + sort.speed)
-		return tmp
+		return sort.step_time < sort.step_dur
 	}
+	advance_sort(sort)
 	return true
 }
 draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	push_rect_matrix(sort.frame)
-	draw_bars(sort.vals[:])
+
+	switch algo.state {
+	case .Initialize:
+		opacity := interp(0, 255, sort.step_time / sort.step_dur, DEFAULT_INTERPOLATION_TYPE)
+		rl.DrawRectangleRec(
+			exd(eval(sort.vals[algo.insert].rect), 0.01),
+			{255, 161, 0, u8(opacity)},
+		)
+		rl.DrawRectangleRec(
+			exd(eval(sort.vals[algo.insert].rect), 0.01),
+			{230, 41, 55, u8(opacity)},
+		)
+		draw_bars(sort.vals[:])
+	case .Start:
+		rl.DrawRectangleRec(exd(eval(sort.vals[algo.compare].rect), 0.01), rl.ORANGE)
+		draw_moving_highlighter(sort, algo.prev.insert, algo.insert, 0.01, rl.RED)
+		draw_bars(sort.vals[:])
+	case .Compare:
+	// ---
+	case .Swap:
+		draw_highlighter(sort, algo.compare, rl.ORANGE)
+		draw_highlighter(sort, algo.insert, rl.RED)
+		draw_bars(sort.vals[:])
+	case .MoveCompare:
+		draw_moving_highlighter(sort, algo.prev.compare, algo.compare, 0.01, rl.ORANGE)
+		rl.DrawRectangleRec(exd(eval(sort.vals[algo.insert].rect), 0.01), rl.RED)
+		draw_bars(sort.vals[:])
+	case .MoveHead:
+		draw_moving_highlighter(sort, algo.prev.compare, algo.compare, 0.01, rl.ORANGE)
+		draw_moving_highlighter(sort, algo.prev.insert, algo.insert, 0.01, rl.RED)
+		draw_bars(sort.vals[:])
+	case .Finish:
+		draw_highlighter(sort, algo.compare, rl.ORANGE)
+		draw_highlighter(sort, algo.insert, rl.RED)
+		draw_bars(sort.vals[:])
+	case .Reset:
+		reset_sort(sort)
+	case .Uninitialized:
+		unreachable()
+	case:
+		unreachable()
+	}
+
 	pop_rect_matrix()
+}
+moving_highlighter_rect :: proc(sort: ^Sort, prev, current: int) -> rl.Rectangle {
+	r := interp(
+		eval(sort.vals[prev].rect),
+		eval(sort.vals[current].rect),
+		sort.step_time / sort.step_dur,
+		DEFAULT_INTERPOLATION_TYPE,
+	)
+	return r
+}
+draw_moving_highlighter :: proc(
+	sort: ^Sort,
+	prev, current: int,
+	extrude: f32,
+	color: rl.Color,
+) {
+	r := moving_highlighter_rect(sort, prev, current)
+	rl.DrawRectangleRec(exd(r, extrude), color)
+}
+draw_highlighter :: proc(sort: ^Sort, idx: int, color: rl.Color, extrude: f32 = 0.01) {
+	rl.DrawRectangleRec(exd(eval(sort.vals[idx].rect), extrude), color)
 }
 insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	algo.state = algo.next_state
@@ -266,10 +144,6 @@ insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	sort.step_dur = INSERTION_DURATIONS[algo.state]
 
 	reset_bars(sort, INSERTION_DURATIONS[algo.state])
-	cursor_reset(&algo.head, INSERTION_DURATIONS[algo.state])
-	highlight_reset(&algo.insert, INSERTION_DURATIONS[algo.state])
-	highlight_reset(&algo.compare, INSERTION_DURATIONS[algo.state])
-	window_reset(&algo.hidden, INSERTION_DURATIONS[algo.state])
 
 	head := &algo.head
 	insert := &algo.insert
@@ -278,13 +152,56 @@ insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	case .Initialize:
 		algo.next_state = .Start
 	case .Start:
-		head.idx = 1
-		insert.idx = 1
-		compare.idx = 1
-	case .MoveHead:
+		if len(sort.vals) == 1 {
+			algo.next_state = .Finish
+		} else {
+			head^ = 1
+			insert^ = 1
+			compare^ = 0
+			algo.next_state = .Compare
+		}
 	case .Compare:
+		if sort.vals[compare^].value > sort.vals[insert^].value {
+			algo.next_state = .Swap
+		} else {
+			if head^ == len(sort.vals) - 1 {
+				algo.next_state = .Finish
+			} else {
+				algo.next_state = .MoveHead
+			}
+		}
 	case .Swap:
+		slice.swap(sort.vals[:], insert^, compare^)
+		insert^ -= 1
+		compare^ += 1
+		algo.next_state = .MoveCompare
+	case .MoveCompare:
+		if insert^ == 0 {
+			// Move compare
+			if head^ == len(sort.vals) - 1 {
+				algo.next_state = .Finish
+			} else {
+				compare^ -= 1
+				algo.next_state = .MoveHead
+			}
+		} else {
+			compare^ = insert^ - 1
+			algo.next_state = .Compare
+		}
+	case .MoveHead:
+		head^ += 1
+		insert^ = head^
+		compare^ = insert^ - 1
+		algo.next_state = .Compare
 	case .Finish:
+		div := f32(len(sort.vals) - 1)
+		div = div != 0 ? div : 1
+		for &bar, i in sort.vals {
+			bar.rect.dur = INSERTION_DURATIONS[algo.state] / 2
+			bar.rect.t -= f32(i) / div
+		}
+		algo.next_state = .Reset
+		return
 	case .Reset:
 		reset_sort(sort)
 	case .Uninitialized:
@@ -324,7 +241,7 @@ insertion_sort_demo :: proc(values: []f32) {
 			}
 		}
 		// move head
-		head -= 1
+		head += 1
 	}
 	// finish
 }
