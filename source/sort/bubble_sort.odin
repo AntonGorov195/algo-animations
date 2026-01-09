@@ -86,7 +86,7 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 	#partial switch algo.state {
 	case .Finish:
 		for &bar, i in sort.vals {
-			bar.rect.start = bar_rect(sort, i, algo.bar_frame)
+			bar.rect.start = bar_target_rect(sort, i, algo.bar_frame)
 			peak := bar.rect.start
 			peak.y -= 0.1
 			bar.rect.end = peak
@@ -109,7 +109,7 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 		e.color.end = {}
 
 		algo.window.start = 0
-		algo.window.rect.end = window_rect(sort, algo.window, algo.bar_frame, true)
+		algo.window.rect.end = window_target_rect(sort, algo.window, algo.bar_frame, true)
 		algo.window.rect.dur = BUBBLE_DURATIONS[.Finish]  * 0.1
 		algo.window.extend.type = DEFAULT_INTERPOLATION_TYPE
 		algo.window.extend.end = [4]f32{WINDOW_EXD, WINDOW_EXD, WINDOW_EXD, WINDOW_EXD}
@@ -118,7 +118,7 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 		algo.window.color.end = {255, 255, 255, 0}
 	case:
 		for &bar, i in sort.vals {
-			bar.rect.end = bar_rect(sort, i, algo.bar_frame)
+			bar.rect.end = bar_target_rect(sort, i, algo.bar_frame)
 			bar.rect.type = DEFAULT_INTERPOLATION_TYPE
 		}
 
@@ -143,13 +143,13 @@ process_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) -> (is_completed: bo
 		e.color.end = rl.RED
 
 		if window_len(algo.window) == 0 {
-			r := bar_rect(sort, win.end - 1, algo.bar_frame)
+			r := bar_target_rect(sort, win.end - 1, algo.bar_frame)
 			algo.window.rect = sort.vals[win.end - 1].rect
 			algo.window.rect.end = r
 			algo.window.extend.type = DEFAULT_INTERPOLATION_TYPE
 			algo.window.extend.end = [4]f32{}
 		} else {
-			algo.window.rect.end = window_rect(sort, algo.window, algo.bar_frame, true)
+			algo.window.rect.end = window_target_rect(sort, algo.window, algo.bar_frame, true)
 			algo.window.extend.type = DEFAULT_INTERPOLATION_TYPE
 			algo.window.extend.end = [4]f32{WINDOW_EXD, WINDOW_EXD, WINDOW_EXD, WINDOW_EXD}
 		}

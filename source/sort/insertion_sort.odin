@@ -58,9 +58,10 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 	}
 
 	defer {
+
 	}
 	for &bar, i in sort.vals {
-		bar.rect.end = bar_rect(sort, i, algo.bar_frame)
+		bar.rect.end = bar_target_rect(sort, i, algo.bar_frame)
 	}
 	if sort.step_time >= sort.step_dur {
 		algo.prev = algo.idx
@@ -72,7 +73,6 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 }
 draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	push_rect_matrix(sort.frame)
-
 	switch algo.state {
 	case .Initialize:
 		opacity := interp(0, 255, sort.step_time / sort.step_dur, DEFAULT_INTERPOLATION_TYPE)
@@ -84,28 +84,38 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
 			exd(eval(sort.vals[algo.insert].rect), 0.01),
 			{230, 41, 55, u8(opacity)},
 		)
+		draw_moving_cursor(sort, algo.prev.head, algo.head, 0.03, 0.08, rl.RED)
 		draw_bars(sort.vals[:])
+		r := window_rect(sort, start = 1, end = len(sort.vals))
+		rl.DrawRectangleRec(r, {0, 0, 0, u8(opacity)})
 	case .Start:
 		rl.DrawRectangleRec(exd(eval(sort.vals[algo.compare].rect), 0.01), rl.ORANGE)
 		draw_moving_highlighter(sort, algo.prev.insert, algo.insert, 0.01, rl.RED)
+		draw_moving_cursor(sort, algo.prev.head, algo.head, 0.03, 0.08, rl.RED)
 		draw_bars(sort.vals[:])
+		r := window_rect(sort, start = 2, end = len(sort.vals))
+		rl.DrawRectangleRec(r, rl.BLACK)
 	case .Compare:
 	// ---
 	case .Swap:
 		draw_highlighter(sort, algo.compare, rl.ORANGE)
 		draw_highlighter(sort, algo.insert, rl.RED)
+		draw_cursor(sort, bar_target_rect(sort, algo.head, algo.bar_frame), 0.03, 0.08, rl.RED)
 		draw_bars(sort.vals[:])
 	case .MoveCompare:
 		draw_moving_highlighter(sort, algo.prev.compare, algo.compare, 0.01, rl.ORANGE)
 		rl.DrawRectangleRec(exd(eval(sort.vals[algo.insert].rect), 0.01), rl.RED)
+		draw_cursor(sort, bar_target_rect(sort, algo.head, algo.bar_frame), 0.03, 0.08, rl.RED)
 		draw_bars(sort.vals[:])
 	case .MoveHead:
 		draw_moving_highlighter(sort, algo.prev.compare, algo.compare, 0.01, rl.ORANGE)
 		draw_moving_highlighter(sort, algo.prev.insert, algo.insert, 0.01, rl.RED)
+		draw_moving_cursor(sort, algo.prev.head, algo.head, 0.03, 0.08, rl.RED)
 		draw_bars(sort.vals[:])
 	case .Finish:
 		draw_highlighter(sort, algo.compare, rl.ORANGE)
 		draw_highlighter(sort, algo.insert, rl.RED)
+		draw_cursor(sort, bar_target_rect(sort, algo.head, algo.bar_frame), 0.03, 0.08, rl.RED)
 		draw_bars(sort.vals[:])
 	case .Reset:
 		reset_sort(sort)
@@ -126,17 +136,40 @@ moving_highlighter_rect :: proc(sort: ^Sort, prev, current: int) -> rl.Rectangle
 	)
 	return r
 }
-draw_moving_highlighter :: proc(
-	sort: ^Sort,
-	prev, current: int,
-	extrude: f32,
-	color: rl.Color,
-) {
+draw_moving_highlighter :: proc(sort: ^Sort, prev, current: int, extrude: f32, color: rl.Color) {
 	r := moving_highlighter_rect(sort, prev, current)
 	rl.DrawRectangleRec(exd(r, extrude), color)
 }
 draw_highlighter :: proc(sort: ^Sort, idx: int, color: rl.Color, extrude: f32 = 0.01) {
 	rl.DrawRectangleRec(exd(eval(sort.vals[idx].rect), extrude), color)
+}
+draw_moving_cursor :: proc(sort: ^Sort, prev, current: int, width, height: f32, color: rl.Color) {
+	tip: [2]f32
+	{
+		r := interp(
+			eval(sort.vals[prev].rect),
+			eval(sort.vals[current].rect),
+			sort.step_time / sort.step_dur,
+			DEFAULT_INTERPOLATION_TYPE,
+		)
+		tip.x = r.x + r.width / 2
+		tip.y = r.y + r.height
+	}
+	rl.DrawTriangle(
+		{tip.x, tip.y},
+		{tip.x - width / 2, tip.y + height},
+		{tip.x + width / 2, tip.y + height},
+		color,
+	)
+}
+draw_cursor :: proc(sort: ^Sort, rect: rl.Rectangle, width, height: f32, color: rl.Color) {
+	tip := [2]f32{rect.x + rect.width / 2, rect.y + rect.height}
+	rl.DrawTriangle(
+		{tip.x, tip.y},
+		{tip.x - width / 2, tip.y + height},
+		{tip.x + width / 2, tip.y + height},
+		color,
+	)
 }
 insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	algo.state = algo.next_state

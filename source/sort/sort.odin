@@ -67,7 +67,7 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 		for &bar, i in sort.vals {
 			bar.rect.dur = DEFAULT_STEP_DUR
 			bar.rect.type = DEFAULT_INTERPOLATION_TYPE
-			bar.rect.end = bar_rect(sort, i, {0, 0, 1, 1})
+			bar.rect.end = bar_target_rect(sort, i, {0, 0, 1, 1})
 		}
 		return true
 	case InsersionSort:
@@ -118,7 +118,7 @@ reset_sort :: proc(sort: ^Sort) {
 // return the intended rect of the window
 // 	rect - content rect of the bar graph.
 // 	match_height - window has height of the max element in slice
-window_rect :: proc(
+window_target_rect :: proc(
 	sort: ^Sort,
 	window: Window,
 	rect: rl.Rectangle,
@@ -142,7 +142,21 @@ window_rect :: proc(
 	y: f32 = rect.height - h + rect.y
 	return {x, y, w, h}
 }
-bar_rect :: proc(sort: ^Sort, idx: int, rect: rl.Rectangle) -> rl.Rectangle {
+window_rect :: proc(sort: ^Sort, start, end: int, height: Maybe(f32) = nil) -> rl.Rectangle {
+	x, y, w, h: f32
+	x = 1
+	y = 1
+	for bar in sort.vals[start:end] {
+		r := eval(bar.rect)
+		x = min(x, r.x)
+		y = min(y, r.y)
+		w = max(w, r.x + r.width)
+		h = max(h, r.height)
+	}
+	w -= x
+	return {x, y, w, h}
+}
+bar_target_rect :: proc(sort: ^Sort, idx: int, rect: rl.Rectangle) -> rl.Rectangle {
 	bar := sort.vals[idx]
 	count := f32(len(sort.vals))
 	gap_count := count - 1

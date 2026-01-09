@@ -152,5 +152,5 @@ _bar_rect :: proc(
 ) {
 	validate_sort_has_items(sort, loc) or_return
 	validate_sort_index(sort, idx, loc) or_return
-	return bar_rect(sort, idx, rect), nil
+	return bar_target_rect(sort, idx, rect), nil
 }
