@@ -3,7 +3,7 @@ package sort
 import "core:slice"
 import rl "vendor:raylib"
 
-InsersionSortState :: enum {
+InsertionSortState :: enum {
 	Uninitialized,
 	Initialize,
 	Start,
@@ -14,22 +14,22 @@ InsersionSortState :: enum {
 	Finish,
 	Reset,
 }
-InsersionIndices :: struct {
+InsertionIndices :: struct {
 	head, insert, compare: int,
 }
-InsersionSort :: struct {
+InsertionSort :: struct {
 	// head:                      Cursor,
 	// prev_insert, prev_compare: HighlightedBar,
 	// insert, compare:           HighlightedBar,
 	// hidden:                    Window, // after head
-	using idx:  InsersionIndices,
-	prev:       InsersionIndices,
-	state:      InsersionSortState,
-	next_state: InsersionSortState,
+	using idx:  InsertionIndices,
+	prev:       InsertionIndices,
+	state:      InsertionSortState,
+	next_state: InsertionSortState,
 	bar_frame:  rl.Rectangle,
 }
 @(rodata)
-INSERTION_DURATIONS: [InsersionSortState]f32 = {
+INSERTION_DURATIONS: [InsertionSortState]f32 = {
 	.Uninitialized = 0,
 	.Initialize    = DEFAULT_STEP_DUR,
 	.Start         = DEFAULT_STEP_DUR,
@@ -40,7 +40,7 @@ INSERTION_DURATIONS: [InsersionSortState]f32 = {
 	.Finish        = DEFAULT_STEP_DUR * 3,
 	.Reset         = 0,
 }
-process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_completed: bool) {
+process_insertion_sort :: proc(sort: ^Sort, algo: ^InsertionSort) -> (is_completed: bool) {
 	is_completed = true
 
 	if len(sort.vals) < 1 {
@@ -57,9 +57,6 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 		return false
 	}
 
-	defer {
-
-	}
 	for &bar, i in sort.vals {
 		bar.rect.end = bar_target_rect(sort, i, algo.bar_frame)
 	}
@@ -71,7 +68,7 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 	advance_sort(sort)
 	return true
 }
-draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
+draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsertionSort) {
 	// highlight rect
 	hr :: proc(rect: rl.Rectangle, color: rl.Color, extend: f32 = HIGHLIGHT_EXD) {
 		rl.DrawRectangleRec(exd(rect, extend), color)
@@ -202,7 +199,7 @@ draw_cursor_tip :: proc(tip: [2]f32, width, height: f32, color: rl.Color) {
 		color,
 	)
 }
-insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsersionSort) {
+insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsertionSort) {
 	algo.state = algo.next_state
 	sort.step_time -= sort.step_dur
 	sort.step_dur = INSERTION_DURATIONS[algo.state]
@@ -271,6 +268,7 @@ insertion_sort_begin_next_state :: proc(sort: ^Sort, algo: ^InsersionSort) {
 	case .Uninitialized:
 		fallthrough
 	case:
+		unreachable()
 	}
 }
 // --- DEMO ---

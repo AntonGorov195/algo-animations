@@ -30,7 +30,10 @@ process :: proc() {
 		g.sorts[0].algo = sort.BubbleSort{}
 	}
 	if g.input.start_insertion_sort {
-		g.sorts[0].algo = sort.InsersionSort{}
+		g.sorts[0].algo = sort.InsertionSort{}
+	}
+	if g.input.start_quick_sort {
+		g.sorts[0].algo = sort.QuickSort{}
 	}
 	for &s in g.sorts {
 		for _ in 0 ..< 10_000 {

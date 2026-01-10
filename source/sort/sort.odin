@@ -4,7 +4,7 @@ import rl "vendor:raylib"
 import "vendor:raylib/rlgl"
 
 Algo :: union {
-	InsersionSort,
+	InsertionSort,
 	BubbleSort,
 	QuickSort,
 }
@@ -75,7 +75,7 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 			bar.rect.end = bar_target_rect(sort, i, {0, 0, 1, 1})
 		}
 		return true
-	case InsersionSort:
+	case InsertionSort:
 		return process_insertion_sort(sort, &algo)
 	case BubbleSort:
 		return process_bubble_sort(sort, &algo)
@@ -93,7 +93,7 @@ draw_sort :: proc(sort: ^Sort) {
 		push_rect_matrix(sort.frame)
 		draw_bars(sort.vals[:])
 		rlgl.PopMatrix()
-	case InsersionSort:
+	case InsertionSort:
 		draw_insertion_sort(sort, &algo)
 	case BubbleSort:
 		draw_bubble_sort(sort, &algo)
