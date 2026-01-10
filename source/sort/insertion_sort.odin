@@ -37,7 +37,7 @@ INSERTION_DURATIONS: [InsersionSortState]f32 = {
 	.Swap          = DEFAULT_STEP_DUR,
 	.MoveCompare   = DEFAULT_STEP_DUR,
 	.MoveHead      = DEFAULT_STEP_DUR,
-	.Finish        = DEFAULT_STEP_DUR,
+	.Finish        = DEFAULT_STEP_DUR * 3,
 	.Reset         = 0,
 }
 process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_completed: bool) {
@@ -72,51 +72,74 @@ process_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) -> (is_complet
 	return true
 }
 draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsersionSort) {
+	// highlight rect
+	hr :: proc(rect: rl.Rectangle, color: rl.Color, extend: f32 = HIGHLIGHT_EXD) {
+		rl.DrawRectangleRec(exd(rect, extend), color)
+	}
+	csr :: proc(
+		tip: [2]f32,
+		width: f32 = CUSOR_WIDTH,
+		height: f32 = CUSOR_HEIGHT,
+		color: rl.Color = CURSOR_COLOR,
+	) {
+		draw_cursor_tip(tip, width, height, color)
+	}
+
+	t := sort.step_time / sort.step_dur
 	push_rect_matrix(sort.frame)
 	switch algo.state {
 	case .Initialize:
-		opacity := interp(0, 255, sort.step_time / sort.step_dur, DEFAULT_INTERPOLATION_TYPE)
-		rl.DrawRectangleRec(
-			exd(eval(sort.vals[algo.insert].rect), 0.01),
-			{255, 161, 0, u8(opacity)},
-		)
-		rl.DrawRectangleRec(
-			exd(eval(sort.vals[algo.insert].rect), 0.01),
-			{230, 41, 55, u8(opacity)},
-		)
-		draw_moving_cursor(sort, algo.prev.head, algo.head, 0.03, 0.08, rl.RED)
+		compare_color := COMPARE_COLOR
+		compare_color.a = u8(interp(f32(0), f32(compare_color.a), t))
+		hr(htra(sort, algo.compare), compare_color)
+		insert_color := SELECTED_COLOR
+		insert_color.a = u8(interp(f32(0), f32(insert_color.a), t))
+		hr(htra(sort, algo.insert), insert_color)
+		cursor_color := CURSOR_COLOR
+		cursor_color.a = u8(interp(f32(0), f32(cursor_color.a), t))
+		csr(tiptra(sort, algo.head), color = cursor_color)
 		draw_bars(sort.vals[:])
-		r := window_rect(sort, start = 1, end = len(sort.vals))
-		rl.DrawRectangleRec(r, {0, 0, 0, u8(opacity)})
 	case .Start:
-		rl.DrawRectangleRec(exd(eval(sort.vals[algo.compare].rect), 0.01), rl.ORANGE)
-		draw_moving_highlighter(sort, algo.prev.insert, algo.insert, 0.01, rl.RED)
-		draw_moving_cursor(sort, algo.prev.head, algo.head, 0.03, 0.08, rl.RED)
+		hr(htra(sort, algo.compare), COMPARE_COLOR)
+		hr(htrai(sort, algo.prev.insert, algo.insert, t), SELECTED_COLOR)
+		csr(tiptrai(sort, algo.prev.head, algo.head, t))
 		draw_bars(sort.vals[:])
-		r := window_rect(sort, start = 2, end = len(sort.vals))
-		rl.DrawRectangleRec(r, rl.BLACK)
 	case .Compare:
 	// ---
 	case .Swap:
-		draw_highlighter(sort, algo.compare, rl.ORANGE)
-		draw_highlighter(sort, algo.insert, rl.RED)
-		draw_cursor(sort, bar_target_rect(sort, algo.head, algo.bar_frame), 0.03, 0.08, rl.RED)
+		hr(htra(sort, algo.compare), COMPARE_COLOR)
+		hr(htra(sort, algo.insert), SELECTED_COLOR)
+		csr(tiptar(sort, algo.head, algo.bar_frame))
 		draw_bars(sort.vals[:])
 	case .MoveCompare:
-		draw_moving_highlighter(sort, algo.prev.compare, algo.compare, 0.01, rl.ORANGE)
-		rl.DrawRectangleRec(exd(eval(sort.vals[algo.insert].rect), 0.01), rl.RED)
-		draw_cursor(sort, bar_target_rect(sort, algo.head, algo.bar_frame), 0.03, 0.08, rl.RED)
+		hr(htrai(sort, algo.prev.compare, algo.compare, t), COMPARE_COLOR)
+		hr(htra(sort, algo.insert), SELECTED_COLOR)
+		csr(tiptar(sort, algo.head, algo.bar_frame))
 		draw_bars(sort.vals[:])
 	case .MoveHead:
-		draw_moving_highlighter(sort, algo.prev.compare, algo.compare, 0.01, rl.ORANGE)
-		draw_moving_highlighter(sort, algo.prev.insert, algo.insert, 0.01, rl.RED)
-		draw_moving_cursor(sort, algo.prev.head, algo.head, 0.03, 0.08, rl.RED)
+		hr(htrai(sort, algo.prev.compare, algo.compare, t), COMPARE_COLOR)
+		hr(htrai(sort, algo.prev.insert, algo.insert, t), SELECTED_COLOR)
+		csr(tiptari(sort, algo.prev.head, algo.head, algo.bar_frame, t))
 		draw_bars(sort.vals[:])
 	case .Finish:
-		draw_highlighter(sort, algo.compare, rl.ORANGE)
-		draw_highlighter(sort, algo.insert, rl.RED)
-		draw_cursor(sort, bar_target_rect(sort, algo.head, algo.bar_frame), 0.03, 0.08, rl.RED)
-		draw_bars(sort.vals[:])
+		compare_color := COMPARE_COLOR
+		compare_color.a = u8(interp(f32(compare_color.a), f32(0), 3 * t))
+		hr(htra(sort, algo.compare), compare_color)
+		insert_color := SELECTED_COLOR
+		insert_color.a = u8(interp(f32(insert_color.a), f32(0), 3 * t))
+		hr(htra(sort, algo.insert), insert_color)
+		cursor_color := CURSOR_COLOR
+		cursor_color.a = u8(interp(f32(cursor_color.a), f32(0), 3 * t))
+		csr(tiptra(sort, algo.head), color = cursor_color)
+		for bar, i in sort.vals {
+			t := t
+			t *= 2
+			t -= f32(i) / f32(len(sort.vals))
+			t = min(1, max(0, t))
+			rect := eval(bar.rect)
+			rect = exd(rect, -0.25 * rect.width * (-4 * t * (t - 1)))
+			rl.DrawRectangleRec(rect, bar.real_place == i ? rl.GREEN : rl.BLACK)
+		}
 	case .Reset:
 		reset_sort(sort)
 	case .Uninitialized:
@@ -164,6 +187,14 @@ draw_moving_cursor :: proc(sort: ^Sort, prev, current: int, width, height: f32, 
 }
 draw_cursor :: proc(sort: ^Sort, rect: rl.Rectangle, width, height: f32, color: rl.Color) {
 	tip := [2]f32{rect.x + rect.width / 2, rect.y + rect.height}
+	rl.DrawTriangle(
+		{tip.x, tip.y},
+		{tip.x - width / 2, tip.y + height},
+		{tip.x + width / 2, tip.y + height},
+		color,
+	)
+}
+draw_cursor_tip :: proc(tip: [2]f32, width, height: f32, color: rl.Color) {
 	rl.DrawTriangle(
 		{tip.x, tip.y},
 		{tip.x - width / 2, tip.y + height},

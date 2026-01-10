@@ -45,12 +45,17 @@ BarValue :: struct {
 	real_place: int, // sorted index
 }
 
-BAR_GAP :: 0.4 // Proportional to bar width
+BAR_GAP :: 0.2 // Proportional to bar width
 PIVOT_COLOR :: rl.BLUE
 COMPARE_COLOR :: rl.ORANGE
 SELECTED_COLOR :: rl.RED
-HIGHLIGHT_EXD :: 0.007
+CURSOR_COLOR :: rl.RED
+HIDE_WINDOW_COLOR :: rl.BLACK
+HIGHLIGHT_EXD :: 0.005
 WINDOW_EXD :: 0.015
+CUSOR_WIDTH :: 0.03
+CUSOR_HEIGHT :: 0.08
+CUSOR_SPACE :: 0.02
 DEFAULT_STEP_DUR :: 0.9
 DEFAULT_INTERPOLATION_TYPE :: InterpolationType.SmoothStep3
 
@@ -142,6 +147,31 @@ window_target_rect :: proc(
 	y: f32 = rect.height - h + rect.y
 	return {x, y, w, h}
 }
+window_target_rect2 :: proc(
+	sort: ^Sort,
+	start: int,
+	end: int,
+	rect: rl.Rectangle,
+	match_height := false,
+	loc := #caller_location,
+) -> rl.Rectangle {
+	count := f32(len(sort.vals))
+	window_size := f32(end - start)
+	gap_count := f32(count) - 1
+	w := rect.width / (count + gap_count * BAR_GAP)
+	x := w * f32(start) * (1 + BAR_GAP) + rect.x
+	w *= window_size + (window_size - 1) * BAR_GAP
+	h := rect.height
+	if match_height {
+		h = 0
+		for bar in sort.vals[start:end] {
+			h = max(h, bar.height)
+		}
+		h *= rect.height
+	}
+	y: f32 = rect.height - h + rect.y
+	return {x, y, w, h}
+}
 window_rect :: proc(sort: ^Sort, start, end: int, height: Maybe(f32) = nil) -> rl.Rectangle {
 	x, y, w, h: f32
 	x = 1
@@ -194,42 +224,6 @@ exd :: proc {
 	extend_rect_sides,
 	extend_rect_sides_vec,
 }
-rect_end_pos_x :: proc(count: int, index: int) -> f32 {
-	w := calc_bar_width(count)
-	return w * f32(index) * (1 + BAR_GAP)
-}
-draw_sort_cursor :: proc(bound: rl.Rectangle, color: rl.Color) {
-	rl.DrawTriangle(
-		{bound.x + bound.width / 2, bound.y},
-		{bound.x, bound.y + bound.height},
-		{bound.x + bound.width, bound.y + bound.height},
-		color,
-	)
-}
-calc_bar_width :: proc(count: int, gap: f32 = BAR_GAP) -> f32 {
-	gap_count := f32(count) - 1
-	return 1 / (f32(count) + gap_count * BAR_GAP)
-}
-advance_highlight_bar :: proc(sort: ^Sort, highlight: ^HighlightedBar) {
-	dt := sort.dt * (1 + sort.speed)
-	highlight.rect.t += dt / highlight.rect.dur
-	highlight.extend.t += dt / highlight.extend.dur
-	highlight.color.t += dt / highlight.color.dur
-}
-advance_cursor :: proc(sort: ^Sort, cursor: ^Cursor) {
-	dt := sort.dt * (1 + sort.speed)
-	cursor.margin.t += dt / cursor.margin.dur
-	cursor.color.t += dt / cursor.color.dur
-	cursor.target.t += dt / cursor.target.dur
-	cursor.width.t += dt / cursor.width.dur
-	cursor.height.t += dt / cursor.height.dur
-}
-advance_window :: proc(sort: ^Sort, window: ^Window) {
-	dt := sort.dt * (1 + sort.speed)
-	window.rect.t += dt / window.rect.dur
-	window.extend.t += dt / window.extend.dur
-	window.color.t += dt / window.color.dur
-}
 advance_sort :: proc(sort: ^Sort) {
 	dt := sort.dt * (1 + sort.speed)
 	sort.step_time += dt
@@ -237,77 +231,129 @@ advance_sort :: proc(sort: ^Sort) {
 		bar.rect.t += dt / bar.rect.dur
 	}
 }
-cursor_point_at :: proc(sort: ^Sort, cursor: ^Cursor) {
-	target := sort.vals[cursor.idx].rect
-	cursor.target.end.x = target.end.x + target.end.width / 2
-	cursor.target.end.y = target.end.y + target.end.height
-	cursor.target.t = target.t
-	cursor.target.dur = target.dur
-	cursor.target.type = target.type
-}
-highlight_with_color :: proc(sort: ^Sort, highlight: ^HighlightedBar, color: rl.Color) {
-	target := sort.vals[highlight.idx].rect
-	highlight.rect.end = target.end
-	highlight.rect.t = target.t
-	highlight.rect.dur = target.dur
-	highlight.rect.type = target.type
-
-	highlight.color.end = color
-}
-highlight_bar :: proc(sort: ^Sort, highlight: ^HighlightedBar) {
-	highlight_with_color(sort, highlight, highlight.color.end)
-}
-highlight :: proc {
-	highlight_bar,
-	highlight_with_color,
-}
-highlight_reset :: proc(h: ^HighlightedBar, dur: f32) {
-	h.color.start = eval(h.color)
-	h.extend.start = eval(h.extend)
-	h.rect.start = eval(h.rect)
-
-	h.color.t = 0
-	h.extend.t = 0
-	h.rect.t = 0
-
-	h.color.dur = dur
-	h.extend.dur = dur
-	h.rect.dur = dur
-}
-cursor_reset :: proc(c: ^Cursor, dur: f32) {
-	c.margin.start = eval(c.margin)
-	c.color.start = eval(c.color)
-	c.target.start = eval(c.target)
-	c.width.start = eval(c.width)
-	c.height.start = eval(c.height)
-
-	c.margin.t = 0
-	c.color.t = 0
-	c.target.t = 0
-	c.width.t = 0
-	c.height.t = 0
-
-	c.margin.dur = dur
-	c.color.dur = dur
-	c.target.dur = dur
-	c.width.dur = dur
-	c.height.dur = dur
-}
-window_reset :: proc(window: ^Window, dur: f32) {
-	window.extend.start = eval(window.extend)
-	window.rect.start = eval(window.rect)
-	window.color.start = eval(window.color)
-
-	window.extend.t = 0
-	window.rect.t = 0
-	window.color.t = 0
-
-	window.extend.dur = dur
-	window.rect.dur = dur
-	window.color.dur = dur
-}
 draw_bars :: proc(bars: []BarValue) {
 	for bar, i in bars {
 		rl.DrawRectangleRec(eval(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
 	}
+}
+
+// In the animation, there is the starting value, end value and current value.
+// track - current value. time is a side effect
+// target - start/end value. no side effects
+
+track_window_rect :: proc(sort: ^Sort, start, end: int) -> rl.Rectangle {
+	x, y, w, h: f32
+	x = 1
+	y = 1
+	for bar in sort.vals[start:end] {
+		r := eval(bar.rect)
+		x = min(x, r.x)
+		y = min(y, r.y)
+		w = max(w, r.x + r.width)
+		h = max(h, r.height)
+	}
+	w -= x
+	return {x, y, w, h}
+} // tracks the current thing.
+target_window_rect :: proc(
+	sort: ^Sort,
+	start: int,
+	end: int,
+	rect: rl.Rectangle,
+	match_height := false,
+) -> rl.Rectangle {
+	count := f32(len(sort.vals))
+	window_size := f32(end - start)
+	gap_count := f32(count) - 1
+	w := rect.width / (count + gap_count * BAR_GAP)
+	x := w * f32(start) * (1 + BAR_GAP) + rect.x
+	w *= window_size + (window_size - 1) * BAR_GAP
+	h := rect.height
+	if match_height {
+		h = 0
+		for bar in sort.vals[start:end] {
+			h = max(h, bar.height)
+		}
+		h *= rect.height
+	}
+	y: f32 = rect.height - h + rect.y
+	return {x, y, w, h}
+}
+
+track_bar_rect :: proc(sort: ^Sort, idx: int) -> rl.Rectangle {
+	return eval(sort.vals[idx].rect)
+}
+target_bar_rect :: proc(sort: ^Sort, idx: int, frame: rl.Rectangle) -> rl.Rectangle {
+	bar := sort.vals[idx]
+	count := f32(len(sort.vals))
+	gap_count := count - 1
+	w := frame.width / (count + gap_count * BAR_GAP)
+	x := w * f32(idx) * (1 + BAR_GAP) + frame.x
+	h := bar.height * frame.height
+	y := frame.height - h + frame.y
+	return {x, y, w, h}
+}
+
+track_cursor_tip :: proc(sort: ^Sort, idx: int, space: f32 = CUSOR_SPACE) -> [2]f32 {
+	r := track_bar_rect(sort, idx)
+	tip: [2]f32
+	tip.x = r.x + r.width / 2
+	tip.y = r.y + r.height + space
+	return tip
+}
+target_cursor_tip :: proc(
+	sort: ^Sort,
+	idx: int,
+	frame: rl.Rectangle,
+	space: f32 = CUSOR_SPACE,
+) -> [2]f32 {
+	r := target_bar_rect(sort, idx, frame)
+	tip: [2]f32
+	tip.x = r.x + r.width / 2
+	tip.y = r.y + r.height + space
+	return tip
+}
+
+htar :: target_bar_rect
+htra :: track_bar_rect
+
+htari :: proc(
+	sort: ^Sort,
+	s, e: int,
+	frame: rl.Rectangle,
+	t: f32,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> rl.Rectangle {
+	return interp(htar(sort, s, frame), htar(sort, e, frame), t, type)
+}
+htrai :: proc(
+	sort: ^Sort,
+	s, e: int,
+	t: f32,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> rl.Rectangle {
+	return interp(htra(sort, s), htra(sort, e), t, type)
+}
+
+tiptar :: target_cursor_tip
+tiptra :: track_cursor_tip
+
+tiptari :: proc(
+	sort: ^Sort,
+	s, e: int,
+	frame: rl.Rectangle,
+	t: f32,
+	space: f32 = CUSOR_SPACE,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> [2]f32 {
+	return interp(tiptar(sort, s, frame, space), tiptar(sort, e, frame, space), t, type)
+}
+tiptrai :: proc(
+	sort: ^Sort,
+	s, e: int,
+	t: f32,
+	space: f32 = CUSOR_SPACE,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> [2]f32 {
+	return interp(tiptra(sort, s, space), tiptra(sort, e, space), t, type)
 }

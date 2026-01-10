@@ -13,14 +13,19 @@ Animated :: struct($T: typeid) {
 to_anim :: proc(val: $T) -> Animated(T) {
 	if false {
 		// Assert T can be interpolated
-		_ = interp(val, val, f32(0), InterpolationType.Linear)
+		_ = interp(val, val, f32(0), DEFAULT_INTERPOLATION_TYPE)
 	}
 	return {start = val, end = val}
 }
 eval :: proc(val: Animated($T)) -> T {
 	return interp(val.start, val.end, val.t, val.type)
 }
-retarget :: proc(val: ^Animated($T), target: T, type: InterpolationType, dur: f32) -> Animated(T) {
+retarget :: proc(
+	val: ^Animated($T),
+	target: T,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+	dur: f32,
+) -> Animated(T) {
 	val^ = {
 		type  = type,
 		t     = 0,
@@ -46,7 +51,7 @@ interp_rect :: proc(
 	start: rl.Rectangle,
 	end: rl.Rectangle,
 	t: f32,
-	type: InterpolationType,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
 ) -> rl.Rectangle {
 	// t_inter := interp01(t, type)
 	return {
@@ -56,7 +61,12 @@ interp_rect :: proc(
 		interp(start.height, end.height, t, type),
 	}
 }
-interp_color :: proc(start: rl.Color, end: rl.Color, t: f32, type: InterpolationType) -> rl.Color {
+interp_color :: proc(
+	start: rl.Color,
+	end: rl.Color,
+	t: f32,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> rl.Color {
 	// t_inter := interp01(t, type)
 	return {
 		u8(interp(f32(start.r), f32(end.r), t, type)),
@@ -69,16 +79,21 @@ interp_values_array :: proc(
 	start: $T/[$N]f32,
 	end: T,
 	t: f32,
-	type: InterpolationType = .Linear,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
 ) -> T {
 	t_inter := interp01(t, type)
 	return start * (1 - t_inter) + end * t_inter
 }
-interp_values :: proc(start: f32, end: f32, t: f32, type: InterpolationType) -> f32 {
+interp_values :: proc(
+	start: f32,
+	end: f32,
+	t: f32,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> f32 {
 	t_inter := interp01(t, type)
 	return start * (1 - t_inter) + end * t_inter
 }
-interp01 :: proc(t: f32, type: InterpolationType) -> f32 {
+interp01 :: proc(t: f32, type: InterpolationType = DEFAULT_INTERPOLATION_TYPE) -> f32 {
 	t := t
 	t = clamp(t, 0, 1)
 	switch type {
@@ -102,12 +117,20 @@ interp01 :: proc(t: f32, type: InterpolationType) -> f32 {
 	}
 	unreachable()
 }
+interp_sort :: proc(
+	sort: ^Sort,
+	s, e: $T,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> T {
+	return interp(s, e, sort.step_time / sort.step_dur, type)
+}
 interp :: proc {
 	interp01,
 	interp_values,
 	interp_values_array,
 	interp_rect,
 	interp_color,
+	interp_sort,
 }
 InterpolationType :: enum {
 	Linear, // default
