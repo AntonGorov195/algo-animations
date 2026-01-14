@@ -7,6 +7,7 @@ Algo :: union {
 	InsertionSort,
 	BubbleSort,
 	QuickSort,
+	MergeSort,
 }
 Window :: struct {
 	start, end: int,
@@ -83,6 +84,8 @@ process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
 		return process_bubble_sort(sort, &algo)
 	case QuickSort:
 		return process_quick_sort(sort, &algo)
+	case MergeSort:
+		return process_merge_sort(sort, &algo)
 	case:
 		unreachable()
 	}
@@ -101,6 +104,8 @@ draw_sort :: proc(sort: ^Sort) {
 		draw_bubble_sort(sort, &algo)
 	case QuickSort:
 		draw_quick_sort(sort, &algo)
+	case MergeSort:
+		draw_merge_sort(sort, &algo)
 	case:
 		unreachable()
 	}
