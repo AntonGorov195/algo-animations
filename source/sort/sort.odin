@@ -50,9 +50,11 @@ PIVOT_COLOR :: rl.BLUE
 COMPARE_COLOR :: rl.ORANGE
 SELECTED_COLOR :: rl.RED
 CURSOR_COLOR :: rl.RED
+STACK_WINDOW_COLOR :: rl.Color{53, 53, 53, 255}
+SELECT_WINDOW_COLOR :: rl.SKYBLUE
 HIDE_WINDOW_COLOR :: rl.BLACK
 HIGHLIGHT_EXD :: 0.005
-WINDOW_EXD :: 0.015
+WINDOW_EXD :: 0.007
 CUSOR_WIDTH :: 0.03
 CUSOR_HEIGHT :: 0.08
 CUSOR_SPACE :: 0.02
@@ -149,27 +151,25 @@ window_target_rect :: proc(
 }
 window_target_rect2 :: proc(
 	sort: ^Sort,
-	start: int,
-	end: int,
-	rect: rl.Rectangle,
+	s, e: int,
+	frame: rl.Rectangle,
 	match_height := false,
-	loc := #caller_location,
 ) -> rl.Rectangle {
 	count := f32(len(sort.vals))
-	window_size := f32(end - start)
+	window_size := f32(e - s)
 	gap_count := f32(count) - 1
-	w := rect.width / (count + gap_count * BAR_GAP)
-	x := w * f32(start) * (1 + BAR_GAP) + rect.x
+	w := frame.width / (count + gap_count * BAR_GAP)
+	x := w * f32(s) * (1 + BAR_GAP) + frame.x
 	w *= window_size + (window_size - 1) * BAR_GAP
-	h := rect.height
+	h := frame.height
 	if match_height {
 		h = 0
-		for bar in sort.vals[start:end] {
+		for bar in sort.vals[s:e] {
 			h = max(h, bar.height)
 		}
-		h *= rect.height
+		h *= frame.height
 	}
-	y: f32 = rect.height - h + rect.y
+	y: f32 = frame.height - h + frame.y
 	return {x, y, w, h}
 }
 window_rect :: proc(sort: ^Sort, start, end: int, height: Maybe(f32) = nil) -> rl.Rectangle {
@@ -356,4 +356,38 @@ tiptrai :: proc(
 	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
 ) -> [2]f32 {
 	return interp(tiptra(sort, s, space), tiptra(sort, e, space), t, type)
+}
+
+wintar :: window_target_rect2
+wintra :: window_rect
+
+wintari :: proc(
+	sort: ^Sort,
+	s1, e1: int,
+	s2, e2: int,
+	frame: rl.Rectangle,
+	t: f32,
+	match_height := false,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> rl.Rectangle {
+	return interp(
+		wintar(sort, s1, s2, frame, match_height = match_height),
+		wintar(sort, s2, e2, frame, match_height = match_height),
+		t,
+		type,
+	)
+}
+wintrai :: proc(
+	sort: ^Sort,
+	s1, e1, s2, e2: int,
+	t: f32,
+	height: Maybe(f32) = nil,
+	type: InterpolationType = DEFAULT_INTERPOLATION_TYPE,
+) -> rl.Rectangle {
+	return interp(
+		wintra(sort, s1, e1, height = height),
+		wintra(sort, s2, e2, height = height),
+		t,
+		type,
+	)
 }
