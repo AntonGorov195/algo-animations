@@ -28,6 +28,9 @@ input :: proc() {
 	if rl.IsKeyPressed(.Q) {
 		input.start_quick_sort = true
 	}
+	if rl.IsKeyPressed(.M) {
+		input.start_merge_sort = true
+	}
 	input.process_rng_seed = rand.uint64()
 	input.output_rng_seed = rand.uint64()
 	g.input = input

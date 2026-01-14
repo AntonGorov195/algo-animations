@@ -33,8 +33,10 @@ process :: proc() {
 		g.sorts[0].algo = sort.InsertionSort{}
 	}
 	if g.input.start_quick_sort {
-		g.sorts[0].algo = sort.InsertionSort{}
-		g.sorts[1].algo = sort.QuickSort{}
+		g.sorts[0].algo = sort.QuickSort{}
+	}
+	if g.input.start_merge_sort {
+		g.sorts[0].algo = sort.MergeSort{}
 	}
 	for &s in g.sorts {
 		for _ in 0 ..< 10_000 {
