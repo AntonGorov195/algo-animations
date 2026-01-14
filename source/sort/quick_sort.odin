@@ -200,8 +200,12 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 		{
 			color := COMPARE_COLOR
 			color.a = u8(interp(255, 0, t))
-			hr(htra(sort, algo.left), color)
-			hr(htra(sort, algo.right), color)
+			if algo.left != -1 {
+				hr(htra(sort, algo.left), color)
+			} 
+			if algo.right != -1 {
+				hr(htra(sort, algo.right), color)
+			}
 		}
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
 		draw_bars(sort.vals[:])
@@ -269,6 +273,8 @@ quick_sort_begin_next_state :: proc(sort: ^Sort, algo: ^QuickSort) {
 		algo.pivot = less_count + algo.win.start
 		if algo.pivot == algo.win.start {
 			algo.next_state = .AddLeftRightStacks
+			algo.left = -1
+			algo.right = -1
 			append(
 				&algo.stack,
 				QuickSortSlice{from = algo.pivot, start = algo.pivot + 1, end = algo.win.end},
@@ -276,6 +282,8 @@ quick_sort_begin_next_state :: proc(sort: ^Sort, algo: ^QuickSort) {
 			algo.stack_len = len(algo.stack)
 		} else if algo.pivot == algo.win.end - 1 {
 			algo.next_state = .AddLeftRightStacks
+			algo.left = -1
+			algo.right = -1
 			append(
 				&algo.stack,
 				QuickSortSlice{from = algo.pivot, start = algo.win.start, end = algo.pivot},

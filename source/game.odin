@@ -74,7 +74,9 @@ start :: proc() {
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
 	append(&g.sorts, create_sort())
-	g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -10)
+	append(&g.sorts, create_sort())
+	g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
+	g.sorts[1].frame = exd(rl.Rectangle{SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
 }
 end :: proc() {
 	// Freeing memory will be done in "game_end".

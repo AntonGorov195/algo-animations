@@ -58,7 +58,7 @@ WINDOW_EXD :: 0.007
 CUSOR_WIDTH :: 0.03
 CUSOR_HEIGHT :: 0.08
 CUSOR_SPACE :: 0.02
-DEFAULT_STEP_DUR :: 0.9
+DEFAULT_STEP_DUR :: 0.1
 DEFAULT_INTERPOLATION_TYPE :: InterpolationType.SmoothStep3
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
