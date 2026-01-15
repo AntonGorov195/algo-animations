@@ -41,7 +41,6 @@ Sort :: struct {
 BarValue :: struct {
 	value:      f32,
 	height:     f32, // original size
-	color:      Animated(rl.Color),
 	rect:       Animated(rl.Rectangle), // animated index
 	real_place: int, // sorted index
 }
@@ -237,9 +236,12 @@ advance_sort :: proc(sort: ^Sort) {
 	}
 }
 draw_bars :: proc(bars: []BarValue) {
-	for bar, i in bars {
-		rl.DrawRectangleRec(eval(bar.rect), bar.real_place == i ? rl.GREEN : rl.BLACK)
+	for &bar, i in bars {
+		draw_bar(&bar, i)		
 	}
+}
+draw_bar :: proc(bar: ^BarValue, idx: int) {
+	rl.DrawRectangleRec(eval(bar.rect), bar.real_place == idx ? rl.GREEN : rl.BLACK)
 }
 
 // In the animation, there is the starting value, end value and current value.

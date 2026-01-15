@@ -128,14 +128,16 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsertionSort) {
 		cursor_color := CURSOR_COLOR
 		cursor_color.a = u8(interp(f32(cursor_color.a), f32(0), 3 * t))
 		csr(tiptra(sort, algo.head), color = cursor_color)
-		for bar, i in sort.vals {
+		for &bar, i in sort.vals {
 			t := t
 			t *= 2
 			t -= f32(i) / f32(len(sort.vals))
 			t = min(1, max(0, t))
 			rect := eval(bar.rect)
 			rect = exd(rect, -0.25 * rect.width * (-4 * t * (t - 1)))
-			rl.DrawRectangleRec(rect, bar.real_place == i ? rl.GREEN : rl.BLACK)
+			bar.rect.start = rect
+			bar.rect.end = rect
+			draw_bar(&bar, i)
 		}
 	case .Reset:
 		reset_sort(sort)
