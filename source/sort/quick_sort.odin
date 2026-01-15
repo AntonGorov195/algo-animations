@@ -85,20 +85,7 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 	return true
 }
 draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
-	hr :: proc(rect: rl.Rectangle, color: rl.Color, extend: f32 = HIGHLIGHT_EXD) {
-		rl.DrawRectangleRec(exd(rect, extend), color)
-	}
-	csr :: proc(
-		tip: [2]f32,
-		width: f32 = CUSOR_WIDTH,
-		height: f32 = CUSOR_HEIGHT,
-		color: rl.Color = CURSOR_COLOR,
-	) {
-		draw_cursor_tip(tip, width, height, color)
-	}
-	wnd :: proc(rect: rl.Rectangle, color: rl.Color, extend: f32 = WINDOW_EXD) {
-		rl.DrawRectangleRec(exd(rect, extend), color)
-	}
+
 
 	t := sort.step_time / sort.step_dur
 	push_rect_matrix(sort.frame)

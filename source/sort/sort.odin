@@ -39,10 +39,12 @@ Sort :: struct {
 	step_dur:  f32,
 }
 BarValue :: struct {
-	value:      f32,
-	height:     f32, // original size
-	rect:       Animated(rl.Rectangle), // animated index
-	real_place: int, // sorted index
+	value:             f32,
+	height:            f32, // original size
+	rect:              Animated(rl.Rectangle), // animated index
+	real_place:        int, // sorted index
+	in_merge_sort_buf: bool,
+	merge_buf_idx:     int,
 }
 
 BAR_GAP :: 0.2 // Proportional to bar width
@@ -237,7 +239,7 @@ advance_sort :: proc(sort: ^Sort) {
 }
 draw_bars :: proc(bars: []BarValue) {
 	for &bar, i in bars {
-		draw_bar(&bar, i)		
+		draw_bar(&bar, i)
 	}
 }
 draw_bar :: proc(bar: ^BarValue, idx: int) {
@@ -397,4 +399,18 @@ wintrai :: proc(
 		t,
 		type,
 	)
+}
+hr :: proc(rect: rl.Rectangle, color: rl.Color, extend: f32 = HIGHLIGHT_EXD) {
+	rl.DrawRectangleRec(exd(rect, extend), color)
+}
+csr :: proc(
+	tip: [2]f32,
+	width: f32 = CUSOR_WIDTH,
+	height: f32 = CUSOR_HEIGHT,
+	color: rl.Color = CURSOR_COLOR,
+) {
+	draw_cursor_tip(tip, width, height, color)
+}
+wnd :: proc(rect: rl.Rectangle, color: rl.Color, extend: f32 = WINDOW_EXD) {
+	rl.DrawRectangleRec(exd(rect, extend), color)
 }
