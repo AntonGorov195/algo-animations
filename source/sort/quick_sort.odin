@@ -85,8 +85,6 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 	return true
 }
 draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
-
-
 	t := sort.step_time / sort.step_dur
 	push_rect_matrix(sort.frame)
 	log.debug(algo.state)

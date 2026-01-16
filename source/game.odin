@@ -85,7 +85,7 @@ end :: proc() {
 	// Here is for logic only.
 }
 create_sort :: proc() -> sort.Sort {
-	COUNT :: 50
+	COUNT :: 32
 	s: sort.Sort
 	s.frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -0)
 	for i in 0 ..< COUNT {

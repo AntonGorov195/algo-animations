@@ -7,6 +7,19 @@ MERGE_SORT_DUR: [MergeSortState]f32 = {
 	.Uninitialized = 0,
 	.Initialize = DEFAULT_STEP_DUR,
 	.CheckWindowSize = DEFAULT_STEP_DUR,
+	.ResetWindowSlide = DEFAULT_STEP_DUR,
+	.CheckWindowSlide = DEFAULT_STEP_DUR,
+	.SetupWindow = DEFAULT_STEP_DUR,
+	.StartMerge = DEFAULT_STEP_DUR,
+	.InsertMerge = DEFAULT_STEP_DUR,
+	.CheckDrainLeft = DEFAULT_STEP_DUR,
+	.DrainLeft = DEFAULT_STEP_DUR,
+	.CheckDrainRight = DEFAULT_STEP_DUR,
+	.DrainRight = DEFAULT_STEP_DUR,
+	.WriteToBuffer = DEFAULT_STEP_DUR,
+	.MergeNext = DEFAULT_STEP_DUR,
+	.MoveWindowStart = DEFAULT_STEP_DUR,
+	.CopyBuffer = DEFAULT_STEP_DUR,
 	.Finish = DEFAULT_STEP_DUR,
 	.Reset = 0,
 }
@@ -14,6 +27,19 @@ MergeSortState :: enum {
 	Uninitialized,
 	Initialize,
 	CheckWindowSize,
+	ResetWindowSlide,
+	CheckWindowSlide,
+	SetupWindow,
+	StartMerge,
+	InsertMerge,
+	CheckDrainLeft,
+	DrainLeft,
+	CheckDrainRight,
+	DrainRight,
+	WriteToBuffer,
+	MergeNext,
+	MoveWindowStart,
+	CopyBuffer,
 	Finish,
 	Reset,
 }
@@ -27,7 +53,12 @@ MergeSort :: struct {
 	to_frame:   rl.Rectangle,
 }
 MergeSortIndices :: struct {
-	window_size:    int, // double each time.
+	window_size:  int, // double each time.
+	lwin:         int,
+	lwin_end:     int,
+	rwin:         int,
+	rwin_end:     int,
+	i, j, cursor: int, // merge
 }
 process_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) -> (is_completed: bool) {
 	is_completed = true
@@ -43,6 +74,7 @@ process_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) -> (is_completed: bool
 		algo.from_frame = exd({0, 0, 1, 0.5}, -0.03)
 		algo.to_frame = exd({0, 0.5, 1, 0.5}, -0.03)
 		algo.next_state = .Initialize
+		algo.buffer = make([dynamic]BarValue, len(sort.vals))
 		merge_sort_begin_next_state(sort, algo)
 		return false
 	}
@@ -59,21 +91,28 @@ process_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) -> (is_completed: bool
 	return true
 }
 draw_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) {
+	t := sort.step_time / sort.step_dur
 	push_rect_matrix(sort.frame)
-	wnd(algo.from_frame, STACK_WINDOW_COLOR)
-	wnd(algo.to_frame, STACK_WINDOW_COLOR)
-	draw_bars(sort.vals[:])
-	pop_rect_matrix()
-}
-merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
-	algo.state = algo.next_state
-	sort.step_time -= sort.step_dur
-	sort.step_dur = MERGE_SORT_DUR[algo.state]
-
-	reset_bars(sort, MERGE_SORT_DUR[algo.state])
 	switch algo.state {
 	case .Initialize:
+		window_color := STACK_WINDOW_COLOR
+		window_color.a = u8(interp(f32(0), f32(window_color.a), t))
+		wnd(algo.from_frame, window_color)
+		wnd(algo.to_frame, window_color)
 	case .CheckWindowSize:
+	case .ResetWindowSlide:
+	case .CheckWindowSlide:
+	case .SetupWindow:
+	case .StartMerge:
+	case .InsertMerge:
+	case .CheckDrainLeft:
+	case .DrainLeft:
+	case .CheckDrainRight:
+	case .DrainRight:
+	case .WriteToBuffer:
+	case .MergeNext:
+	case .MoveWindowStart:
+	case .CopyBuffer:
 	case .Finish:
 	case .Reset:
 		reset_sort(sort)
@@ -82,24 +121,171 @@ merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
 	case:
 		unreachable()
 	}
-	// algo.prev = algo.idx
-	// algo.next_state = .CheckStackLength
+	// switch algo.state {
+	// case .Initialize:
+	// 	window_color := STACK_WINDOW_COLOR
+	// 	window_color.a = u8(interp(f32(0), f32(window_color.a), t))
+	// 	wnd(algo.from_frame, window_color)
+	// 	wnd(algo.to_frame, window_color)
+	// case .CheckWindowSize:
+	// case .CheckWindowSlide:
+	// case .StartWindowSlide:
+	// case .StartMerge:
+	// case .CompareMerge:
+	// case .InsertMerge:
+	// case .DrainLeft:
+	// case .DrainRight:
+	// case .CopyBuffer:
+	// case .Finish:
+	// case .Reset:
+	// 	reset_sort(sort)
+	// case .Uninitialized:
+	// 	fallthrough
+	// case:
+	// 	unreachable()
+	// }
+	draw_bars(sort.vals[:])
+	pop_rect_matrix()
+}
+merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
+	algo.state = algo.next_state
+	sort.step_time -= sort.step_dur
+	sort.step_dur = MERGE_SORT_DUR[algo.state]
+	reset_bars(sort, MERGE_SORT_DUR[algo.state])
+	// sort.step_dur = 0
+	// reset_bars(sort, 0)
+	switch algo.state {
+	case .Initialize:
+		count := len(sort.vals)
+		assert(len(algo.buffer) == count)
+		algo.window_size = 1
+
+		algo.next_state = .CheckWindowSize
+	case .CheckWindowSize:
+		count := len(sort.vals)
+		if algo.window_size < count {
+			// start window slide
+			algo.next_state = .ResetWindowSlide
+		} else {
+			algo.next_state = .Reset
+		}
+	case .ResetWindowSlide:
+		algo.lwin = 0
+		algo.next_state = .CheckWindowSlide
+	case .CheckWindowSlide:
+		count := len(sort.vals)
+		if algo.lwin < count {
+			algo.next_state = .SetupWindow
+		} else {
+			algo.next_state = .CopyBuffer
+		}
+	case .SetupWindow:
+		count := len(sort.vals)
+		algo.lwin_end = algo.lwin + algo.window_size
+		algo.rwin = algo.lwin_end
+		algo.rwin_end = algo.rwin + algo.window_size
+		algo.lwin_end = min(algo.rwin, count)
+		algo.rwin = min(algo.rwin, count)
+		algo.rwin_end = min(algo.rwin_end, count)
+		if algo.rwin_end - algo.rwin == 0 {
+			// early break when the second window is empty
+			algo.next_state = .CopyBuffer
+		} else {
+			algo.next_state = .StartMerge
+		}
+	case .StartMerge:
+		// merge
+		algo.i = algo.lwin
+		algo.j = algo.rwin
+		algo.cursor = algo.lwin
+		algo.next_state = .InsertMerge
+	case .InsertMerge:
+		if algo.i >= algo.lwin_end {
+			// drain right
+			algo.next_state = .CheckDrainRight
+		} else if algo.j >= algo.rwin_end {
+			// drain left
+			algo.next_state = .CheckDrainLeft
+		} else {
+			// compare
+			algo.next_state = .WriteToBuffer
+		}
+	case .MoveWindowStart:
+		algo.lwin = algo.rwin_end
+		algo.next_state = .CheckWindowSlide
+	case .CheckDrainLeft:
+		if algo.i < algo.lwin_end {
+			algo.next_state = .DrainLeft
+		} else {
+			algo.next_state = .MoveWindowStart
+		}
+	case .DrainLeft:
+		algo.buffer[algo.cursor] = sort.vals[algo.i]
+		algo.cursor += 1
+		algo.i += 1
+		algo.next_state = .CheckDrainLeft
+	case .CheckDrainRight:
+		if algo.j < algo.rwin_end {
+			algo.next_state = .DrainRight
+		} else {
+			algo.next_state = .MoveWindowStart
+		}
+	case .DrainRight:
+		algo.buffer[algo.cursor] = sort.vals[algo.j]
+		algo.cursor += 1
+		algo.j += 1
+		algo.next_state = .CheckDrainRight
+	case .WriteToBuffer:
+		if sort.vals[algo.i].value < sort.vals[algo.j].value {
+			// insert left
+			algo.buffer[algo.cursor] = sort.vals[algo.i]
+			algo.i += 1
+			algo.next_state = .MergeNext
+		} else {
+			// insert right
+			algo.buffer[algo.cursor] = sort.vals[algo.j]
+			algo.j += 1
+			algo.next_state = .MergeNext
+		}
+	case .MergeNext:
+		// move cursor
+		algo.cursor += 1
+		algo.next_state = .InsertMerge
+	case .CopyBuffer:
+		// copy from buffer to values
+		count := len(sort.vals)
+		for i in 0 ..< count {
+			sort.vals[i] = algo.buffer[i]
+		}
+		algo.window_size *= 2
+		algo.next_state = .CheckWindowSize
+	case .Finish:
+		algo.next_state = .Reset
+	case .Reset:
+		reset_sort(sort)
+	case .Uninitialized:
+		fallthrough
+	case:
+		unreachable()
+	}
 }
 // DEMO
 merge_sort_demo :: proc(values: []f32) {
+	// init
 	count := len(values)
 	if count == 0 {
 		return
 	}
 	buffer := make([]f32, count, context.temp_allocator)
 	window_size := 1
-	// check end
+	// check if window size is reached end
 	for window_size < count {
-		// begin window
+		// start window slide
 		lwin: int
 		for lwin < count {
 			// select window bounds
-			lwin_end := lwin+ window_size
+			// setup window
+			lwin_end := lwin + window_size
 			rwin := lwin_end
 			rwin_end := rwin + window_size
 			lwin_end = min(rwin, count)
@@ -129,7 +315,7 @@ merge_sort_demo :: proc(values: []f32) {
 }
 merge_sort_demo_merge :: proc(l, r: []f32, out: []f32) {
 	assert(len(l) + len(r) == len(out))
-	// start 
+	// start
 	i, j: int
 	cursor: int
 	for {

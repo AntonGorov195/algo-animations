@@ -60,7 +60,7 @@ WINDOW_EXD :: 0.007
 CUSOR_WIDTH :: 0.03
 CUSOR_HEIGHT :: 0.08
 CUSOR_SPACE :: 0.02
-DEFAULT_STEP_DUR :: 0.1
+DEFAULT_STEP_DUR :: 0.01
 DEFAULT_INTERPOLATION_TYPE :: InterpolationType.SmoothStep3
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
@@ -125,6 +125,8 @@ reset_sort :: proc(sort: ^Sort) {
 		bar.rect.start = eval(bar.rect)
 		bar.rect.t = 0
 		bar.rect.dur = 1
+		bar.in_merge_sort_buf = false
+		bar.merge_buf_idx = 0
 	}
 }
 
