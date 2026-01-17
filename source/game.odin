@@ -53,16 +53,19 @@ Game :: struct {
 }
 World :: struct {
 	// Add stuff here for hot reloading to work
-	input:        Input,
-	time:         f32,
-	font:         R.Font,
-	font_mono:    R.Font,
-	font_ui:      u16,
-	font_mono_ui: u16,
-	// main_sort:    sort.Sort,
-	sorts:        [dynamic]sort.Sort,
-	speed:        f32,
-	is_sorting:   bool,
+	input:          Input,
+	time:           f32,
+	font:           R.Font,
+	font_mono:      R.Font,
+	font_ui:        u16,
+	font_mono_ui:   u16,
+	bubble_texture: R.Texture,
+	insert_texture: R.Texture,
+	quick_texture:  R.Texture,
+	merge_texture:  R.Texture,
+	sorts:          [dynamic]sort.Sort,
+	speed:          f32,
+	is_sorting:     bool,
 }
 g: ^Game
 start :: proc() {
@@ -92,6 +95,10 @@ start :: proc() {
 		rl.Rectangle{SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2},
 		-10,
 	)
+	g.bubble_texture = R.load_texture("bubble.png")
+	g.insert_texture = R.load_texture("insert.png")
+	g.quick_texture = R.load_texture("quick.png")
+	g.merge_texture = R.load_texture("merge.png")
 	// append(&g.sorts, create_sort())
 	// g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
 	// g.sorts[1].frame = exd(rl.Rectangle{SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
@@ -107,7 +114,8 @@ create_sort :: proc() -> sort.Sort {
 	for i in 0 ..< COUNT {
 		w := sort.calc_bar_width(COUNT)
 		x := sort.rect_end_pos_x(COUNT, i)
-		h := f32(i + 1) / COUNT
+		h := f32(1)
+		// h := f32(i + 1) / COUNT
 		rect := sort.Animated(rl.Rectangle) {
 			start = rl.Rectangle{x, 1 - h, w, h},
 			end   = rl.Rectangle{x, 1 - h, w, h},

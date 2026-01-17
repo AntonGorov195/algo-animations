@@ -87,13 +87,12 @@ process_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) -> (is_completed: bool
 draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 	t := sort.step_time / sort.step_dur
 	push_rect_matrix(sort.frame)
-	log.debug(algo.state)
 	switch algo.state {
 	case .Initialize:
 		window_color := STACK_WINDOW_COLOR
 		window_color.a = u8(interp(f32(0), f32(window_color.a), t))
 		wnd(wintra(sort, 0, len(sort.vals)), window_color)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .CheckStackLength:
 	// ---
 	case .PopStack:
@@ -102,21 +101,21 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 		}
 		window_color := interp(STACK_WINDOW_COLOR, SELECT_WINDOW_COLOR, t)
 		wnd(wintra(sort, algo.win.start, algo.win.end), window_color)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .ChoosePivot:
 		for w in algo.stack {
 			wnd(wintra(sort, w.start, w.end), STACK_WINDOW_COLOR)
 		}
 		wnd(wintra(sort, algo.win.start, algo.win.end), SELECT_WINDOW_COLOR)
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .SwapPivot:
 		for w in algo.stack {
 			wnd(wintra(sort, w.start, w.end), STACK_WINDOW_COLOR)
 		}
 		wnd(wintra(sort, algo.win.start, algo.win.end), SELECT_WINDOW_COLOR)
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .PartitionStart:
 		for w in algo.stack {
 			wnd(wintra(sort, w.start, w.end), STACK_WINDOW_COLOR)
@@ -127,7 +126,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 		hr(htra(sort, algo.left), cmp_color)
 		hr(htra(sort, algo.right), cmp_color)
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .CompareLeft:
 	// ---
 	case .NextLeft:
@@ -138,7 +137,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 		hr(htrai(sort, algo.prev.left, algo.left, t), COMPARE_COLOR)
 		hr(htrai(sort, algo.prev.right, algo.right, t), COMPARE_COLOR)
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .CompareRight:
 	// ---
 	case .NextRight:
@@ -149,7 +148,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 		hr(htrai(sort, algo.prev.left, algo.left, t), SELECTED_COLOR)
 		hr(htrai(sort, algo.prev.right, algo.right, t), COMPARE_COLOR)
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .SwapLeftRight:
 		for w in algo.stack {
 			wnd(wintra(sort, w.start, w.end), STACK_WINDOW_COLOR)
@@ -161,7 +160,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 		hr(htra(sort, algo.left), SELECTED_COLOR)
 		hr(htra(sort, algo.right), SELECTED_COLOR)
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .AddLeftRightStacks:
 		for w in algo.stack[:algo.prev.stack_len] {
 			wnd(wintra(sort, w.start, w.end), STACK_WINDOW_COLOR)
@@ -193,7 +192,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 			}
 		}
 		hr(htra(sort, algo.pivot), PIVOT_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .Finish:
 		for &bar, i in sort.vals {
 			t := t
@@ -204,7 +203,7 @@ draw_quick_sort :: proc(sort: ^Sort, algo: ^QuickSort) {
 			rect = exd(rect, -0.25 * rect.width * (-4 * t * (t - 1)))
 			bar.rect.start = rect
 			bar.rect.end = rect
-			draw_bar(&bar, i)
+			draw_bar(sort, &bar, i)
 			// rl.DrawRectangleRec(rect, bar.real_place == i ? rl.GREEN : rl.BLACK)
 		}
 	case .Reset:

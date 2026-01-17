@@ -95,29 +95,29 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsertionSort) {
 		cursor_color := CURSOR_COLOR
 		cursor_color.a = u8(interp(f32(0), f32(cursor_color.a), t))
 		csr(tiptra(sort, algo.head), color = cursor_color)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .Start:
 		hr(htra(sort, algo.compare), COMPARE_COLOR)
 		hr(htrai(sort, algo.prev.insert, algo.insert, t), SELECTED_COLOR)
 		csr(tiptrai(sort, algo.prev.head, algo.head, t))
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .Compare:
 	// ---
 	case .Swap:
 		hr(htra(sort, algo.compare), COMPARE_COLOR)
 		hr(htra(sort, algo.insert), SELECTED_COLOR)
 		csr(tiptar(sort, algo.head, algo.bar_frame))
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .MoveCompare:
 		hr(htrai(sort, algo.prev.compare, algo.compare, t), COMPARE_COLOR)
 		hr(htra(sort, algo.insert), SELECTED_COLOR)
 		csr(tiptar(sort, algo.head, algo.bar_frame))
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .MoveHead:
 		hr(htrai(sort, algo.prev.compare, algo.compare, t), COMPARE_COLOR)
 		hr(htrai(sort, algo.prev.insert, algo.insert, t), SELECTED_COLOR)
 		csr(tiptari(sort, algo.prev.head, algo.head, algo.bar_frame, t))
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .Finish:
 		compare_color := COMPARE_COLOR
 		compare_color.a = u8(interp(f32(compare_color.a), f32(0), 3 * t))
@@ -137,7 +137,7 @@ draw_insertion_sort :: proc(sort: ^Sort, algo: ^InsertionSort) {
 			rect = exd(rect, -0.25 * rect.width * (-4 * t * (t - 1)))
 			bar.rect.start = rect
 			bar.rect.end = rect
-			draw_bar(&bar, i)
+			draw_bar(sort, &bar, i)
 		}
 	case .Reset:
 		reset_sort(sort)

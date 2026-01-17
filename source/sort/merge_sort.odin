@@ -119,7 +119,7 @@ draw_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) {
 		}
 		wnd(algo.from_frame, STACK_WINDOW_COLOR)
 		wnd(algo.to_frame, STACK_WINDOW_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	}
 	t := sort.step_time / sort.step_dur
 	push_rect_matrix(sort.frame)
@@ -129,14 +129,14 @@ draw_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) {
 		window_color.a = u8(interp(f32(0), f32(window_color.a), t))
 		wnd(algo.from_frame, window_color)
 		wnd(algo.to_frame, window_color)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .CheckWindowSize:
 	// ---
 	case .ResetWindowSlide:
 		// ---
 		wnd(algo.from_frame, STACK_WINDOW_COLOR)
 		wnd(algo.to_frame, STACK_WINDOW_COLOR)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .CheckWindowSlide:
 	// ---
 	case .SetupWindow:
@@ -166,7 +166,7 @@ draw_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) {
 		window_color.a = u8(interp(f32(window_color.a), f32(0), t))
 		wnd(algo.from_frame, window_color)
 		wnd(algo.to_frame, window_color)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 	case .Reset:
 		reset_sort(sort)
 	case .Uninitialized:

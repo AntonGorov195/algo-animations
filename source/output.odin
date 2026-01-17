@@ -28,7 +28,7 @@ output :: proc() {
 	}
 
 	clay_raylib_render(&g.ui_cmds)
-	draw_mouse_cursor()
+	// draw_mouse_cursor()
 }
 calc_bar_width :: proc(count: int, gap: f32 = BAR_GAP) -> f32 {
 	gap_count := f32(count) - 1

@@ -192,7 +192,7 @@ draw_bubble_sort :: proc(sort: ^Sort, algo: ^BubbleSort) {
 			eval(algo.end.color),
 		)
 	}
-	draw_bars(sort.vals[:])
+	draw_bars(sort, sort.vals[:])
 	pop_rect_matrix()
 }
 // This looks weird because it emulates the animation.

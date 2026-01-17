@@ -37,6 +37,7 @@ Sort :: struct {
 	vals:      [dynamic]BarValue,
 	step_time: f32,
 	step_dur:  f32,
+	texture:   rl.Texture,
 }
 BarValue :: struct {
 	value:             f32,
@@ -47,7 +48,7 @@ BarValue :: struct {
 	merge_buf_idx:     int,
 }
 
-BAR_GAP :: 0.2 // Proportional to bar width
+BAR_GAP :: 0 // Proportional to bar width
 PIVOT_COLOR :: rl.BLUE
 COMPARE_COLOR :: rl.ORANGE
 SELECTED_COLOR :: rl.RED
@@ -97,7 +98,7 @@ draw_sort :: proc(sort: ^Sort) {
 	switch &algo in sort.algo {
 	case nil:
 		push_rect_matrix(sort.frame)
-		draw_bars(sort.vals[:])
+		draw_bars(sort, sort.vals[:])
 		rlgl.PopMatrix()
 	case InsertionSort:
 		draw_insertion_sort(sort, &algo)
@@ -239,13 +240,26 @@ advance_sort :: proc(sort: ^Sort) {
 		bar.rect.t += dt / bar.rect.dur
 	}
 }
-draw_bars :: proc(bars: []BarValue) {
+draw_bars :: proc(sort: ^Sort, bars: []BarValue) {
 	for &bar, i in bars {
-		draw_bar(&bar, i)
+		draw_bar(sort, &bar, i)
 	}
 }
-draw_bar :: proc(bar: ^BarValue, idx: int) {
-	rl.DrawRectangleRec(eval(bar.rect), bar.real_place == idx ? rl.GREEN : rl.BLACK)
+draw_bar :: proc(sort: ^Sort, bar: ^BarValue, idx: int) {
+	if sort.texture == {} {
+		rl.DrawRectangleRec(eval(bar.rect), bar.real_place == idx ? rl.GREEN : rl.BLACK)
+	} else {
+		wx := f32(sort.texture.width) * f32(bar.real_place) / f32(len(sort.vals))
+		rl.DrawTexturePro(
+			sort.texture,
+			{wx, 0, f32(sort.texture.width) / f32(len(sort.vals)), f32(sort.texture.height)},
+			eval(bar.rect),
+			{},
+			0,
+			bar.real_place == idx ? rl.WHITE : rl.GRAY,
+		)
+		// rl.DrawRectangleRec(eval(bar.rect), bar.real_place == idx ? rl.GREEN : rl.BLACK)
+	}
 }
 
 // In the animation, there is the starting value, end value and current value.
