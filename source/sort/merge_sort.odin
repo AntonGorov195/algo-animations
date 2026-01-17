@@ -4,24 +4,24 @@ import rl "vendor:raylib"
 
 @(rodata)
 MERGE_SORT_DUR: [MergeSortState]f32 = {
-	.Uninitialized = 0,
-	.Initialize = DEFAULT_STEP_DUR,
-	.CheckWindowSize = DEFAULT_STEP_DUR,
-	.ResetWindowSlide = DEFAULT_STEP_DUR,
-	.CheckWindowSlide = DEFAULT_STEP_DUR,
-	.SetupWindow = DEFAULT_STEP_DUR,
-	.StartMerge = DEFAULT_STEP_DUR,
-	.InsertMerge = DEFAULT_STEP_DUR,
-	.CheckDrainLeft = DEFAULT_STEP_DUR,
-	.DrainLeft = DEFAULT_STEP_DUR,
-	.CheckDrainRight = DEFAULT_STEP_DUR,
-	.DrainRight = DEFAULT_STEP_DUR,
-	.WriteToBuffer = DEFAULT_STEP_DUR,
-	.MergeNext = DEFAULT_STEP_DUR,
-	.MoveWindowStart = DEFAULT_STEP_DUR,
-	.CopyBuffer = DEFAULT_STEP_DUR,
-	.Finish = DEFAULT_STEP_DUR,
-	.Reset = 0,
+	.Uninitialized    = 0,
+	.Initialize       = DEFAULT_STEP_DUR,
+	.CheckWindowSize  = 0,
+	.ResetWindowSlide = 0,
+	.CheckWindowSlide = 0,
+	.SetupWindow      = DEFAULT_STEP_DUR,
+	.StartMerge       = DEFAULT_STEP_DUR,
+	.InsertMerge      = DEFAULT_STEP_DUR,
+	.CheckDrainLeft   = DEFAULT_STEP_DUR,
+	.DrainLeft        = DEFAULT_STEP_DUR,
+	.CheckDrainRight  = DEFAULT_STEP_DUR,
+	.DrainRight       = DEFAULT_STEP_DUR,
+	.WriteToBuffer    = DEFAULT_STEP_DUR,
+	.MergeNext        = DEFAULT_STEP_DUR,
+	.MoveWindowStart  = DEFAULT_STEP_DUR,
+	.CopyBuffer       = DEFAULT_STEP_DUR * 4,
+	.Finish           = DEFAULT_STEP_DUR * 10,
+	.Reset            = 0,
 }
 MergeSortState :: enum {
 	Uninitialized,
@@ -71,16 +71,25 @@ process_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) -> (is_completed: bool
 	if algo.state == .Uninitialized {
 		sort.step_dur = 0
 		sort.step_time = 0
-		algo.from_frame = exd({0, 0, 1, 0.5}, -0.03)
-		algo.to_frame = exd({0, 0.5, 1, 0.5}, -0.03)
+		algo.from_frame = exd({0, 0, 1, 0.5}, -0.09)
+		algo.to_frame = exd({0, 0.5, 1, 0.5}, -0.1)
 		algo.next_state = .Initialize
 		algo.buffer = make([dynamic]BarValue, len(sort.vals))
+		for &bar in sort.vals {
+			bar.in_merge_sort_buf = false
+			bar.merge_buf_idx = 0
+		}
 		merge_sort_begin_next_state(sort, algo)
 		return false
 	}
 
 	for &bar, i in sort.vals {
-		bar.rect.end = bar_target_rect(sort, i, algo.from_frame)
+		if bar.in_merge_sort_buf {
+			bar.rect.end = htarn(&bar, len(sort.vals), bar.merge_buf_idx, algo.to_frame)
+			algo.buffer[bar.merge_buf_idx].rect = bar.rect
+		} else {
+			bar.rect.end = htar(sort, i, algo.from_frame)
+		}
 	}
 	if sort.step_time >= sort.step_dur {
 		algo.prev = algo.idx
@@ -91,6 +100,27 @@ process_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) -> (is_completed: bool
 	return true
 }
 draw_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) {
+	d :: proc(sort: ^Sort, algo: ^MergeSort) {
+		t := sort.step_time / sort.step_dur
+		{
+			s := tiptar(sort, min(algo.prev.i, len(algo.buffer) - 1), algo.from_frame)
+			e := tiptar(sort, min(algo.i, len(algo.buffer) - 1), algo.from_frame)
+			csr(interp(s, e, t), width = CUSOR_WIDTH / 2)
+		}
+		{
+			s := tiptar(sort, min(algo.prev.j, len(algo.buffer) - 1), algo.from_frame)
+			e := tiptar(sort, min(algo.j, len(algo.buffer) - 1), algo.from_frame)
+			csr(interp(s, e, t), width = CUSOR_WIDTH / 2)
+		}
+		{
+			s := tiptar(sort, min(algo.prev.cursor, len(algo.buffer) - 1), algo.to_frame)
+			e := tiptar(sort, min(algo.cursor, len(algo.buffer) - 1), algo.to_frame)
+			csr(interp(s, e, t))
+		}
+		wnd(algo.from_frame, STACK_WINDOW_COLOR)
+		wnd(algo.to_frame, STACK_WINDOW_COLOR)
+		draw_bars(sort.vals[:])
+	}
 	t := sort.step_time / sort.step_dur
 	push_rect_matrix(sort.frame)
 	switch algo.state {
@@ -99,21 +129,44 @@ draw_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) {
 		window_color.a = u8(interp(f32(0), f32(window_color.a), t))
 		wnd(algo.from_frame, window_color)
 		wnd(algo.to_frame, window_color)
+		draw_bars(sort.vals[:])
 	case .CheckWindowSize:
+	// ---
 	case .ResetWindowSlide:
+		// ---
+		wnd(algo.from_frame, STACK_WINDOW_COLOR)
+		wnd(algo.to_frame, STACK_WINDOW_COLOR)
+		draw_bars(sort.vals[:])
 	case .CheckWindowSlide:
+	// ---
 	case .SetupWindow:
+		d(sort, algo)
 	case .StartMerge:
+		d(sort, algo)
 	case .InsertMerge:
+		d(sort, algo)
 	case .CheckDrainLeft:
+		d(sort, algo)
 	case .DrainLeft:
+		d(sort, algo)
 	case .CheckDrainRight:
+		d(sort, algo)
 	case .DrainRight:
+		d(sort, algo)
 	case .WriteToBuffer:
+		d(sort, algo)
 	case .MergeNext:
+		d(sort, algo)
 	case .MoveWindowStart:
+		d(sort, algo)
 	case .CopyBuffer:
+		d(sort, algo)
 	case .Finish:
+		window_color := STACK_WINDOW_COLOR
+		window_color.a = u8(interp(f32(window_color.a), f32(0), t))
+		wnd(algo.from_frame, window_color)
+		wnd(algo.to_frame, window_color)
+		draw_bars(sort.vals[:])
 	case .Reset:
 		reset_sort(sort)
 	case .Uninitialized:
@@ -144,7 +197,7 @@ draw_merge_sort :: proc(sort: ^Sort, algo: ^MergeSort) {
 	// case:
 	// 	unreachable()
 	// }
-	draw_bars(sort.vals[:])
+	// draw_bars(sort.vals[:])
 	pop_rect_matrix()
 }
 merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
@@ -152,8 +205,10 @@ merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
 	sort.step_time -= sort.step_dur
 	sort.step_dur = MERGE_SORT_DUR[algo.state]
 	reset_bars(sort, MERGE_SORT_DUR[algo.state])
-	// sort.step_dur = 0
-	// reset_bars(sort, 0)
+	if sort.step_dur != 0 {
+		algo.prev = algo.idx
+	}
+
 	switch algo.state {
 	case .Initialize:
 		count := len(sort.vals)
@@ -167,7 +222,7 @@ merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
 			// start window slide
 			algo.next_state = .ResetWindowSlide
 		} else {
-			algo.next_state = .Reset
+			algo.next_state = .Finish
 		}
 	case .ResetWindowSlide:
 		algo.lwin = 0
@@ -220,6 +275,8 @@ merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
 			algo.next_state = .MoveWindowStart
 		}
 	case .DrainLeft:
+		sort.vals[algo.i].in_merge_sort_buf = true
+		sort.vals[algo.i].merge_buf_idx = algo.cursor
 		algo.buffer[algo.cursor] = sort.vals[algo.i]
 		algo.cursor += 1
 		algo.i += 1
@@ -231,18 +288,23 @@ merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
 			algo.next_state = .MoveWindowStart
 		}
 	case .DrainRight:
+		sort.vals[algo.j].in_merge_sort_buf = true
+		sort.vals[algo.j].merge_buf_idx = algo.cursor
 		algo.buffer[algo.cursor] = sort.vals[algo.j]
 		algo.cursor += 1
 		algo.j += 1
 		algo.next_state = .CheckDrainRight
 	case .WriteToBuffer:
 		if sort.vals[algo.i].value < sort.vals[algo.j].value {
-			// insert left
+			sort.vals[algo.i].in_merge_sort_buf = true
+			sort.vals[algo.i].merge_buf_idx = algo.cursor
 			algo.buffer[algo.cursor] = sort.vals[algo.i]
 			algo.i += 1
 			algo.next_state = .MergeNext
 		} else {
 			// insert right
+			sort.vals[algo.j].in_merge_sort_buf = true
+			sort.vals[algo.j].merge_buf_idx = algo.cursor
 			algo.buffer[algo.cursor] = sort.vals[algo.j]
 			algo.j += 1
 			algo.next_state = .MergeNext
@@ -255,8 +317,16 @@ merge_sort_begin_next_state :: proc(sort: ^Sort, algo: ^MergeSort) {
 		// copy from buffer to values
 		count := len(sort.vals)
 		for i in 0 ..< count {
-			sort.vals[i] = algo.buffer[i]
+			b := algo.buffer[i]
+			sort.vals[i] = b
+			sort.vals[i].in_merge_sort_buf = false
+			// b.in_merge_sort_buf = false
+			// b.merge_buf_idx = 0
+			// b.rect = sort.vals[i].rect
+			// sort.vals[i] = b
+			// algo.buffer[i] = {}
 		}
+		reset_bars(sort, MERGE_SORT_DUR[algo.state])
 		algo.window_size *= 2
 		algo.next_state = .CheckWindowSize
 	case .Finish:

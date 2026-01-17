@@ -304,6 +304,20 @@ target_bar_rect :: proc(sort: ^Sort, idx: int, frame: rl.Rectangle) -> rl.Rectan
 	y := frame.height - h + frame.y
 	return {x, y, w, h}
 }
+target_bar_rect_no_sort :: proc(
+	bar: ^BarValue,
+	count: int,
+	idx: int,
+	frame: rl.Rectangle,
+) -> rl.Rectangle {
+	count := f32(count)
+	gap_count := count - 1
+	w := frame.width / (count + gap_count * BAR_GAP)
+	x := w * f32(idx) * (1 + BAR_GAP) + frame.x
+	h := bar.height * frame.height
+	y := frame.height - h + frame.y
+	return {x, y, w, h}
+}
 
 track_cursor_tip :: proc(sort: ^Sort, idx: int, space: f32 = CUSOR_SPACE) -> [2]f32 {
 	r := track_bar_rect(sort, idx)
@@ -325,6 +339,7 @@ target_cursor_tip :: proc(
 	return tip
 }
 
+htarn :: target_bar_rect_no_sort
 htar :: target_bar_rect
 htra :: track_bar_rect
 
