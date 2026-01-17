@@ -1,5 +1,6 @@
 package game
 
+import "core:log"
 import "core:math/rand"
 import "core:slice"
 import "sort"
@@ -37,6 +38,16 @@ process :: proc() {
 	}
 	if g.input.start_merge_sort {
 		g.sorts[0].algo = sort.MergeSort{}
+	}
+	if g.input.start_super_sort {
+		if len(g.sorts) == 4 {
+			g.sorts[0].algo = sort.BubbleSort{}
+			g.sorts[1].algo = sort.InsertionSort{}
+			g.sorts[2].algo = sort.QuickSort{}
+			g.sorts[3].algo = sort.MergeSort{}
+		} else {
+			log.debug("invalid sort count for super sort")
+		}
 	}
 	for &s in g.sorts {
 		for _ in 0 ..< 10_000 {

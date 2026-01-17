@@ -27,6 +27,7 @@ Input :: struct {
 	start_bubble_sort:    bool,
 	start_quick_sort:     bool,
 	start_merge_sort:     bool,
+	start_super_sort:     bool,
 	// pause_sort:       bool,
 	process_rng_seed:     u64,
 	output_rng_seed:      u64,
@@ -75,7 +76,22 @@ start :: proc() {
 	g.font_ui = ui_add_font(g.font)
 	g.font_mono_ui = ui_add_font(g.font_mono)
 	append(&g.sorts, create_sort())
-	g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, -10)
+	append(&g.sorts, create_sort())
+	append(&g.sorts, create_sort())
+	append(&g.sorts, create_sort())
+	g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2}, -10)
+	g.sorts[1].frame = exd(
+		rl.Rectangle{SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2},
+		-10,
+	)
+	g.sorts[2].frame = exd(
+		rl.Rectangle{0, SCREEN_HEIGHT / 2, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2},
+		-10,
+	)
+	g.sorts[3].frame = exd(
+		rl.Rectangle{SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2},
+		-10,
+	)
 	// append(&g.sorts, create_sort())
 	// g.sorts[0].frame = exd(rl.Rectangle{0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
 	// g.sorts[1].frame = exd(rl.Rectangle{SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT}, -10)
