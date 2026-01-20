@@ -3,7 +3,6 @@ package game
 import "core:log"
 import "core:math/rand"
 import "core:slice"
-import R "resources"
 import "sort"
 import "vendor:clay"
 import rl "vendor:raylib"
@@ -52,10 +51,10 @@ process :: proc() {
 			log.debug("invalid sort count for super sort")
 		}
 	}
-	g.sorts[0].texture = R.get(g.bubble_texture)
-	g.sorts[1].texture = R.get(g.insert_texture)
-	g.sorts[2].texture = R.get(g.quick_texture)
-	g.sorts[3].texture = R.get(g.merge_texture)
+	// g.sorts[0].texture = R.get(g.bubble_texture)
+	// g.sorts[1].texture = R.get(g.insert_texture)
+	// g.sorts[2].texture = R.get(g.quick_texture)
+	// g.sorts[3].texture = R.get(g.merge_texture)
 	for &s in g.sorts {
 		for _ in 0 ..< 10_000 {
 			if sort.process_sort(&s) {

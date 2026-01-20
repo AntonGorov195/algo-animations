@@ -49,7 +49,7 @@ BarValue :: struct {
 	merge_buf_idx:     int,
 }
 
-BAR_GAP :: 0 // Proportional to bar width
+BAR_GAP :: 0.3 // Proportional to bar width
 PIVOT_COLOR :: rl.BLUE
 COMPARE_COLOR :: rl.ORANGE
 SELECTED_COLOR :: rl.RED
@@ -62,7 +62,7 @@ WINDOW_EXD :: 0.007
 CUSOR_WIDTH :: 0.03
 CUSOR_HEIGHT :: 0.08
 CUSOR_SPACE :: 0.02
-DEFAULT_STEP_DUR :: 0.001
+DEFAULT_STEP_DUR :: 0.5
 DEFAULT_INTERPOLATION_TYPE :: InterpolationType.SmoothStep3
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {

@@ -27,7 +27,7 @@ BubbleSort :: struct {
 @(rodata)
 BUBBLE_DURATIONS: [BubbleSortState]f32 = {
 	.Uninitialized = 0,
-	.Initialize    = DEFAULT_STEP_DUR * 10,
+	.Initialize    = DEFAULT_STEP_DUR,
 	.Start         = DEFAULT_STEP_DUR,
 	.Compare       = 0, // no animation for comparing
 	.Swap          = DEFAULT_STEP_DUR,
