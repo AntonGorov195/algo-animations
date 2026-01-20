@@ -21,8 +21,10 @@ process :: proc() {
 	// g.main_sort.dt = g.input.dt
 	if g.input.randomize {
 		seed := rand.uint64()
+
 		for &s in g.sorts {
 			rand.reset(seed)
+			sort.sort_bars(&s)
 			rand.shuffle(s.vals[:])
 			sort.reset_sort(&s)
 		}

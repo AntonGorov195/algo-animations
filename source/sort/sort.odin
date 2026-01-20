@@ -2,6 +2,7 @@ package sort
 
 import rl "vendor:raylib"
 import "vendor:raylib/rlgl"
+import "core:slice"
 
 Algo :: union {
 	InsertionSort,
@@ -61,7 +62,7 @@ WINDOW_EXD :: 0.007
 CUSOR_WIDTH :: 0.03
 CUSOR_HEIGHT :: 0.08
 CUSOR_SPACE :: 0.02
-DEFAULT_STEP_DUR :: 0.01
+DEFAULT_STEP_DUR :: 0.001
 DEFAULT_INTERPOLATION_TYPE :: InterpolationType.SmoothStep3
 
 process_sort :: proc(sort: ^Sort) -> (is_completed: bool) {
@@ -444,4 +445,54 @@ csr :: proc(
 }
 wnd :: proc(rect: rl.Rectangle, color: rl.Color, extend: f32 = WINDOW_EXD) {
 	rl.DrawRectangleRec(exd(rect, extend), color)
+}
+sort_bars :: proc(sort: ^Sort) {
+	values := sort.vals[:]
+	stack := make([dynamic][]BarValue, context.temp_allocator)
+	append(&stack, values)
+
+	for len(stack) > 0 {
+		// pop slice
+		vals := pop(&stack)
+		count := len(vals)
+		if count <= 1 {
+			continue
+		}
+		// find pivot
+		pivot_i := count / 2
+		pivot := vals[pivot_i]
+		less_count: int
+		// find how many are on the left side
+		for value in vals {
+			if value.value < pivot.value {
+				less_count += 1
+			}
+		}
+		// swap the pivot to the correct position
+		slice.swap(vals, less_count, pivot_i)
+		pivot_i = less_count
+		// start search
+		left_i: int
+		right_i := count - 1
+		// start partition
+		for left_i < pivot_i {
+			// find a left
+			if vals[left_i].value < pivot.value {
+				left_i += 1
+				continue
+			}
+
+			// find right
+			for vals[right_i].value > pivot.value {
+				right_i -= 1
+			}
+			// swap
+			slice.swap(vals, left_i, right_i)
+			less_count -= 1
+		}
+		// append right
+		append(&stack, vals[pivot_i + 1:])
+		// append left
+		append(&stack, vals[:pivot_i])
+	}
 }
